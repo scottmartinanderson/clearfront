@@ -1,0 +1,153 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example
+
+# Config (contains API keys, never commit)
+config.yaml
+config.yml
+# Exception: GitHub metadata files named config.yml are not secrets
+!.github/**
+
+# Clearfront generated output
+reports/
+*.cast
+
+# Media: generated GIFs and MP4s (tapes are versioned, output is not)
+media/output/
+
+# Distribution / packaging
+.installed.cfg
+lib/
+lib64/
+
+# PyInstaller
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ruff
+.ruff_cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Claude Code / AI tooling
+.claude/settings.local.json
+.claude/todos/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Vibe-coded / AI-generated test files
+# test_coverage_boost.py exists solely to pad coverage metrics to 80%, not real tests
+tests/test_coverage_boost.py
+
+# Auto-generated coverage data
+# Produced by pytest-cov / coverage.py, not source, not config
+coverage.json
+
+# OSINT tool output artifacts dumped to repo root
+# These are runtime results from manual tool runs, not source files
+researcher*.txt
+testuser*.txt
+*.osint.txt
+reports/
+
+# Empty placeholder files
+# clearfront/index.html.txt is 0 bytes, accidentally created stub
+clearfront/index.html.txt
+
+# Landing page is a standalone repo, not part of this tool repo
+/site/
+
+# Installed agent-skill helpers (regenerable, not part of the tool)
+.agents/
+skills-lock.json

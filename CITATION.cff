@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use Clearfront in your research, please cite it as below."
+title: Clearfront
+abstract: >-
+  AI-powered OSINT agent, MCP server, and CLI for scanning a digital footprint
+  across public data sources. Runs an interactive REPL, direct CLI, a local web
+  console, and an MCP server, backed by passive collection tools and a
+  calibrated intelligence report with an evidence graph.
+type: software
+authors:
+  - given-names: Scott
+    family-names: Anderson
+version: 2.5.0
+license: MIT
+repository-code: "https://github.com/scottmartinanderson/clearfront"
+url: "https://github.com/scottmartinanderson/clearfront"
+keywords:
+  - osint
+  - privacy
+  - digital-footprint
+  - security
+  - mcp
+  - python

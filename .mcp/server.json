@@ -1,0 +1,60 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.scottmartinanderson/clearfront",
+  "title": "Clearfront",
+  "description": "AI-powered OSINT agent & MCP server. 30 tools: email, breach, IP, WHOIS, DNS, Shodan, GitHub & more.",
+  "version": "2.5.0",
+  "websiteUrl": "https://clearfront.sh",
+  "repository": {
+    "url": "https://github.com/scottmartinanderson/clearfront",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "clearfront",
+      "version": "2.5.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "installInstructions": "pip install clearfront",
+      "environmentVariables": [
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "description": "Anthropic API key, required for the AI agent REPL",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "HIBP_API_KEY",
+          "description": "HaveIBeenPwned API key for breach detection (search_breach tool)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "IPINFO_TOKEN",
+          "description": "ipinfo.io token for higher IP lookup rate limits (search_ip tool)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "IP2LOCATION_API_KEY",
+          "description": "IP2Location API key for enhanced IP intelligence (search_ip2location tool)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "ABUSEIPDB_API_KEY",
+          "description": "AbuseIPDB API key for IP abuse reputation checks (search_abuseipdb tool)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

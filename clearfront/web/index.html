@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLEARFRONT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background-color: var(--bg); margin: 0; padding: 0; }
+
+  /* Swappable mono typeface (one line to A/B): JetBrains Mono | IBM Plex Mono */
+  :root { --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; }
+
+  /* DARK, warm near-black institutional console (Dossier tint, OKLCH hue 85
+     at 45% chroma so raised surfaces never read brown; same undertone family
+     as the light paper theme). Greyscale chrome only. */
+  :root {
+    --bg: #0c0b09;
+    --surface: #141312;
+    --surface-dark: #1d1c1a;
+    --border: #292826;
+    --text-primary: #e8e7e4;
+    --text-secondary: #908f8c;
+    --text-muted: #7d7b79;   /* raised to clear WCAG AA (~4.9:1 on --bg) */
+    /* semantic accents, used ONLY to encode data severity, never for chrome */
+    --accent: #3fb950;   /* OK / clean / confirmed (green) */
+    --yellow: #d29922;   /* WATCH / caution (amber) */
+    --red:    #f85149;   /* RISK / alert (red) */
+    --accent-blue: var(--text-secondary);  /* neutralised, no decorative blue */
+  }
+  /* LIGHT, warm "paper" document tone, not stark white. */
+  :root.light {
+    --bg: #f5f4f1;
+    --surface: #fbfaf8;
+    --surface-dark: #efece7;
+    --border: #dad7d0;
+    --text-primary: #1a1b1e;
+    --text-secondary: #5f636b;
+    --text-muted: #696d75;   /* darkened to clear WCAG AA (~4.6:1 on --bg) */
+    --accent: #1a7f37;
+    --yellow: #9a6700;
+    --red:    #cf222e;
+    --accent-blue: var(--text-secondary);
+  }
+
+  /* Themed utility classes */
+  .bg-app          { background-color: var(--bg); }
+  .bg-surface      { background-color: var(--surface); }
+  .bg-surface-dark { background-color: var(--surface-dark); }
+  .bg-border       { background-color: var(--border); }
+  .bg-accent       { background-color: var(--text-primary); }  /* monochrome chrome; green reserved for semantic text-accent */
+  .bg-overlay      { background-color: rgba(0,0,0,0.5); }
+  .border-app      { border-color: var(--border); }
+  .border-accent   { border-color: var(--text-primary); }
+  .text-primary    { color: var(--text-primary); }
+  .text-secondary  { color: var(--text-secondary); }
+  .text-muted      { color: var(--text-muted); }
+  .text-accent     { color: var(--accent); }
+  .text-accent-blue{ color: var(--accent-blue); }
+  .text-error      { color: var(--red); }
+  .text-warning    { color: var(--yellow); }
+  .text-bg         { color: var(--bg); }
+
+  /* Hover variants */
+  .hover\:text-primary:hover     { color: var(--text-primary); }
+  .hover\:text-secondary:hover   { color: var(--text-secondary); }
+  .hover\:bg-surface:hover       { background-color: var(--surface); }
+  .hover\:bg-border-50:hover     { background-color: color-mix(in srgb, var(--border) 50%, transparent); }
+  .hover\:bg-accent-80:hover     { background-color: color-mix(in srgb, var(--text-primary) 78%, var(--bg)); }
+  .hover\:border-accent-40:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .hover\:border-app:hover       { border-color: var(--border); }
+  .hover\:border-strong:hover    { border-color: var(--text-muted); }
+  .hover\:bg-faint:hover         { background-color: color-mix(in srgb, var(--text-primary) 6%, transparent); }
+  .placeholder-muted::placeholder { color: var(--text-muted); }
+
+  .font-mono { font-family: var(--font-mono) !important; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  [x-cloak] { display: none !important; }
+
+  @keyframes _spin   { to { transform: rotate(360deg); } }
+  @keyframes _fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  @keyframes _blink  { 50% { opacity:0; } }
+
+  .c-spin   { animation: _spin 1s linear infinite; }
+  .c-fadein { animation: _fadein 0.15s ease; }
+  .c-blink  { animation: _blink 1s step-end infinite; }
+
+  /* post-boot staged reveal (eDEX-UI behaviour):
+     1. hero prints on top-to-bottom, line by line (clip wipe in discrete steps);
+     2. chrome (header + input) fades in;
+     3. the command-list rows come online one-by-one, staggered like eDEX panels.
+     Elements start hidden (cf-hidden) so they never flash before Alpine choreographs. */
+  .cf-hidden { opacity: 0; }
+  .cf-shown  { opacity: 1; }   /* instant show (boot skipped / same-session reload) */
+  /* hero: terminal print-on, reveal in horizontal bands top→bottom; slant is preserved
+     because the clip is applied to the upright container, the transform to the inner pre */
+  @keyframes _heroPrint { from { clip-path: inset(0 0 100% 0); opacity: 1; }
+                          to   { clip-path: inset(0 0 0 0);    opacity: 1; } }
+  .cf-hero-in { animation: _heroPrint 0.62s steps(9, end) both; }
+  /* chrome */
+  @keyframes _revealUp { from { opacity: 0; transform: translateY(6px); }
+                         to   { opacity: 1; transform: none; } }
+  .cf-reveal-in { animation: _revealUp 0.42s ease both; }
+  /* command rows: staggered left→right wipe (terminal "draw-in", no soft fade);
+     per-row animation-delay set inline by index. backwards fill keeps each row clipped
+     (hidden) through its delay, so they reveal strictly in sequence. */
+  @keyframes _rowWipe { from { clip-path: inset(0 100% 0 0); opacity: 1; }
+                        to   { clip-path: inset(0 0 0 0);    opacity: 1; } }
+  .cf-row-in { animation: _rowWipe 0.32s ease both; }
+  @media (prefers-reduced-motion: reduce) {
+    .cf-hero-in, .cf-reveal-in, .cf-row-in { animation: none; opacity: 1; transform: none; clip-path: none; }
+  }
+
+  /* markdown */
+  .md p { margin-bottom:.5em; }
+  .md p:last-child { margin-bottom:0; }
+  .md code { background:var(--surface-dark); border:1px solid var(--border); padding:.1em .3em; border-radius:3px; font-size:.83em; font-family:"JetBrains Mono",monospace; color:var(--accent); }
+  .md strong { color:var(--text-primary); font-weight:500; }
+  .md em { color:var(--text-secondary); font-style:italic; }
+  .md h1,.md h2,.md h3 { font-weight:500; color:var(--text-primary); margin:.7em 0 .3em; }
+  .md h1 { font-size:1.1em; }
+  .md h2 { font-size:1.05em; }
+  .md h3 { font-size:1em; }
+  .md ul,.md ol { padding-left:1.2em; margin-bottom:.5em; }
+  .md ul { list-style:disc; }
+  .md ol { list-style:decimal; }
+  .md li { margin-bottom:.15em; }
+  .md a { color:var(--text-secondary); text-decoration:underline; }
+  .md pre { background:var(--surface-dark); border:1px solid var(--border); padding:.65em .9em; border-radius:6px; overflow-x:auto; margin:.4em 0; }
+  .md pre code { background:none; border:none; padding:0; font-size:.8em; }
+
+  /* intelligence report, same mono/text-xs typography as the tool-card panels; section headers differ only by a divider rule */
+  .report-body .md h1, .report-body .md h2, .report-body .md h3 { font-size:.75rem; font-weight:400; color:var(--text-secondary);
+    border-bottom:1px solid var(--border); padding-bottom:.3em; margin:1.15em 0 .5em; }
+  .report-body .md h1:first-child, .report-body .md h2:first-child, .report-body .md h3:first-child { margin-top:0; }
+
+  #chat-area { scroll-behavior:smooth; }
+  textarea { font-family:inherit; }
+  textarea:focus { outline:none; }
+
+  /* hero wordmark, fluid ANSI on desktop (scales to its column, never clips),
+     compact legible lockup below the sm breakpoint. */
+  .hero { container-type: inline-size; }
+  .hero-ascii {
+    font-size: clamp(6px, 1.7cqi, 11px);
+    line-height: 1.4; letter-spacing: 0; white-space: pre;
+    transform: skewX(-9deg); transform-origin: bottom left;
+  }
+  .hero-lockup {
+    font-size: clamp(26px, 12vw, 38px); font-weight: 700; letter-spacing: 0.14em;
+    line-height: 1.1; transform: skewX(-9deg); transform-origin: bottom left;
+  }
+
+  /* keyboard focus, visible ring in both themes (overrides focus:outline-none) */
+  :focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; border-radius: 3px; }
+  input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--text-primary) !important; outline-offset: 2px;
+  }
+  /* main chat input: indicate focus on the shell (subtle hairline), never a glaring
+     white ring on the textarea itself, text inputs trigger :focus-visible on plain
+     mouse clicks, so the global ring above would box the input on every click. */
+  .input-shell { transition: border-color .15s ease; }
+  .input-shell:focus-within { border-color: var(--text-muted); }
+  #chat-input:focus, #chat-input:focus-visible { outline: none !important; box-shadow: none; }
+  /* honour the user's reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important; scroll-behavior: auto !important;
+    }
+  }
+
+  /* IP-geolocation map: monochrome satellite. The Maps Embed API can't recolour
+     satellite imagery, so we desaturate the rendered iframe. Hover reveals true colour. */
+  .map-mono { filter: grayscale(1) contrast(1.06); transition: filter .25s ease; }
+  .map-mono:hover { filter: grayscale(0) contrast(1); }
+  :root.light .map-mono { filter: grayscale(1) contrast(1.02) brightness(1.02); }
+  :root.light .map-mono:hover { filter: none; }
+
+  /* boot sequence, authentic dmesg-style kernel log: flat dim text, hard against
+     the screen's bottom-left, streaming upward. No glow / scanlines / progress. */
+  .boot-log { color: var(--text-secondary); }
+
+  /* exposure verdict band: severity chips (semantic colour only) */
+  .vb-risk  { color: var(--red);    border-color: var(--red);    background: color-mix(in srgb, var(--red) 12%, transparent); }
+  .vb-watch { color: var(--yellow); border-color: var(--yellow); background: color-mix(in srgb, var(--yellow) 12%, transparent); }
+  .vb-ok    { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
+  /* evidence graph: expand the inline 3D panel to a near-fullscreen modal. The same
+     WebGL instance is repositioned via CSS (no second context), then resized in JS. */
+  .cf-graph-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,0.55); backdrop-filter: blur(2px); }
+  .cf-graph-expanded { position: fixed !important; inset: 1.5rem; z-index: 60; margin: 0 !important;
+                       box-shadow: 0 24px 70px rgba(0,0,0,0.55); display: flex; flex-direction: column; }
+  .cf-graph-expanded .cf-graph-canvas { flex: 1 1 auto; height: auto !important; }
+  @media (max-width: 640px) { .cf-graph-expanded { inset: 0.5rem; } }
+</style>
+</head>
+
+<body class="bg-app" style="font-family:'Inter',system-ui,sans-serif;">
+<div x-data="clearfront" class="h-screen flex flex-col font-sans text-sm text-primary overflow-hidden">
+
+<!-- BOOT SEQUENCE (eDEX-UI style: dmesg-style kernel log streaming up from the
+     bottom-left. Flat dim text, no chrome. Once per session, silently skippable. -->
+<div x-show="booting" x-cloak
+     @click="endBoot()" @keydown.window="endBoot()"
+     class="fixed inset-0 z-[100] bg-app overflow-hidden flex flex-col justify-end cursor-pointer select-none"
+     role="status" aria-label="System boot">
+  <pre class="boot-log font-mono"
+       style="font-size:11.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;padding:0 14px 12px 14px;"><template x-for="(l,i) in bootLines" :key="i"><span class="block" x-text="l"></span></template></pre>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div x-show="showSettings" x-cloak
+     @click.self="showSettings = false"
+     class="fixed inset-0 z-50 bg-overlay flex items-center justify-center p-4"
+     x-transition:enter="transition ease-out duration-150"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-100"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0">
+  <div class="bg-surface border border-app rounded-lg max-w-md w-full p-6 shadow-xl max-h-[88vh] overflow-y-auto c-fadein">
+
+    <!-- header -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-sm font-medium">Settings</h2>
+      <button @click="showSettings = false"
+              class="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-border-50 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- AI backend -->
+    <p class="text-xs font-medium text-muted uppercase tracking-wider mb-3">AI Backend</p>
+    <div class="flex gap-2 mb-4">
+      <button @click="settings.chatModel = 'claude'; saveLocalSettings()"
+              :class="settings.chatModel === 'claude'
+                ? 'bg-accent text-bg border-accent'
+                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+              class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
+        Claude (Anthropic)
+      </button>
+      <button @click="settings.chatModel = 'ollama'; saveLocalSettings()"
+              :class="settings.chatModel === 'ollama'
+                ? 'bg-border text-primary border-app'
+                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+              class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
+        Ollama (local)
+      </button>
+      <button @click="settings.chatModel = 'openai'; saveLocalSettings()"
+              :class="settings.chatModel === 'openai'
+                ? 'bg-border text-primary border-app'
+                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+              class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
+        OpenAI API
+      </button>
+    </div>
+
+    <div x-show="settings.chatModel === 'ollama'"
+         class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model name</label>
+        <input x-model="settings.ollamaModel" placeholder="llama3.2"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Host URL</label>
+        <input x-model="settings.ollamaHost" placeholder="http://localhost:11434"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="testOllama()"
+                class="px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary text-xs transition-all">
+          Test connection
+        </button>
+        <span x-show="ollamaTestResult" x-text="ollamaTestResult"
+              :class="ollamaTestOk ? 'text-accent' : 'text-error'"
+              class="text-xs font-mono"></span>
+      </div>
+    </div>
+
+    <div x-show="settings.chatModel === 'openai'"
+         class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
+      <p class="text-muted text-xs leading-relaxed">
+        Any OpenAI-compatible endpoint (LiteLLM, llama-swap, vLLM, …). The model
+        must support tool/function calling. Leave fields blank to use the server's
+        environment defaults.
+      </p>
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Base URL</label>
+        <input x-model="settings.openaiBaseUrl" @change="saveLocalSettings()" placeholder="http://localhost:4000/v1"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model name</label>
+        <input x-model="settings.openaiModel" @change="saveLocalSettings()" placeholder="gpt-4o-mini"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">API key (optional)</label>
+        <input x-model="settings.openaiApiKey" @change="saveLocalSettings()" type="password" placeholder="sk-..."
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="testOpenai()"
+                class="px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary text-xs transition-all">
+          Test connection
+        </button>
+        <button @click="saveOpenai()"
+                class="px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary text-xs transition-all">
+          Save
+        </button>
+        <span x-show="openaiTestResult" x-text="openaiTestResult"
+              :class="openaiTestOk ? 'text-accent' : 'text-error'"
+              class="text-xs font-mono"></span>
+      </div>
+    </div>
+
+    <div class="border-t border-app my-5"></div>
+
+    <!-- API keys: primary -->
+    <p class="text-xs font-medium text-muted uppercase tracking-wider mb-3">API Keys</p>
+    <div class="space-y-3">
+      <template x-for="k in apiKeys.filter(k => k.primary)" :key="k.key">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-secondary text-xs" x-text="k.label"></label>
+            <a x-show="k.getUrl" :href="k.getUrl" target="_blank" rel="noopener"
+               class="text-muted hover:text-primary text-xs transition-colors flex-none">Get a key ↗</a>
+          </div>
+          <div class="relative">
+            <input :type="showKeys[k.key] ? 'text' : 'password'"
+                   x-model="setupData[k.key]"
+                   :placeholder="k.placeholder"
+                   class="w-full bg-app border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors pr-9">
+            <button @click="showKeys[k.key] = !showKeys[k.key]"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors">
+              <svg x-show="!showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg x-show="showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Advanced keys: collapsible -->
+    <button @click="showAdvancedKeys = !showAdvancedKeys"
+            class="flex items-center gap-1.5 text-muted hover:text-secondary text-xs mt-3 transition-colors">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           :class="showAdvancedKeys ? 'rotate-180' : ''"
+           class="transition-transform">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+      Advanced keys
+    </button>
+    <div x-show="showAdvancedKeys" class="mt-3 space-y-3">
+      <template x-for="k in apiKeys.filter(k => !k.primary)" :key="k.key">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-secondary text-xs" x-text="k.label"></label>
+            <a x-show="k.getUrl" :href="k.getUrl" target="_blank" rel="noopener"
+               class="text-muted hover:text-primary text-xs transition-colors flex-none">Get a key ↗</a>
+          </div>
+          <div class="relative">
+            <input :type="showKeys[k.key] ? 'text' : 'password'"
+                   x-model="setupData[k.key]"
+                   :placeholder="k.placeholder"
+                   class="w-full bg-app border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors pr-9">
+            <button @click="showKeys[k.key] = !showKeys[k.key]"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors">
+              <svg x-show="!showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg x-show="showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div class="flex items-center gap-3 mt-4">
+      <button @click="saveApiKeys()"
+              class="bg-accent hover:bg-accent-80 text-bg rounded-md px-4 py-2 text-xs font-medium transition-colors">
+        Save keys
+      </button>
+      <span x-show="setupMsg" x-text="setupMsg"
+            :class="setupOk ? 'text-accent' : 'text-error'"
+            class="text-xs font-mono"></span>
+    </div>
+
+    <!-- sponsors footer -->
+    <template x-if="featuredSponsors.length > 0">
+      <div class="border-t border-app mt-4 pt-3">
+        <p class="text-muted text-xs mb-2">Featured integrations</p>
+        <template x-for="s in featuredSponsors" :key="s.name">
+          <a :href="s.url" target="_blank" rel="noopener sponsored"
+             class="flex items-center gap-2 text-secondary hover:text-primary text-xs transition-colors mb-1">
+            <span class="font-mono" x-text="s.name"></span>
+            <span class="text-muted">·</span>
+            <span class="text-muted truncate" x-text="s.tagline"></span>
+          </a>
+        </template>
+      </div>
+    </template>
+
+    <!-- footer -->
+    <div class="border-t border-app mt-4 pt-4 flex items-center justify-between">
+      <span class="text-muted text-xs font-mono">clearfront v<span x-text="version"></span></span>
+      <a href="https://github.com/scottmartinanderson/clearfront" target="_blank" rel="noopener"
+         class="text-secondary hover:text-primary text-xs transition-colors">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<!-- LEAK TEST MODAL -->
+<div x-show="showLeakTest" x-cloak
+     @click.self="showLeakTest = false"
+     class="fixed inset-0 z-50 bg-overlay flex items-center justify-center p-4"
+     x-transition:enter="transition ease-out duration-150"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-100"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0">
+  <div class="bg-surface border border-app rounded-lg max-w-md w-full p-6 shadow-xl max-h-[88vh] overflow-y-auto c-fadein">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-sm font-medium">Browser IP Leak Test</h2>
+      <button @click="showLeakTest = false"
+              class="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-border-50 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <p class="text-muted text-xs mb-4 leading-relaxed">Runs in <strong>your browser</strong> to check whether your real IP leaks past a VPN/proxy. Most revealing while connected to a VPN, a leak means a site could still see your true IP.</p>
+
+    <div class="flex items-center gap-3 mb-4">
+      <button @click="runLeakTest()" :disabled="leak.running"
+              class="bg-accent hover:bg-accent-80 text-bg rounded-md px-4 py-2 text-xs font-medium transition-colors disabled:opacity-50">
+        <span x-show="!leak.running" x-text="leak.ran ? 'Re-run test' : 'Run test'"></span>
+        <span x-show="leak.running">Testing…</span>
+      </button>
+      <span x-show="leak.httpIp" class="text-xs font-mono text-muted">exit IP: <span class="text-secondary" x-text="leak.httpIp"></span></span>
+    </div>
+
+    <template x-if="leak.ran">
+      <div class="space-y-3">
+        <!-- WebRTC -->
+        <div class="border border-app rounded-md p-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium">WebRTC</span>
+            <span class="text-xs font-mono font-medium" :class="badgeClass(leak.webrtc.level)" x-text="leak.webrtc.level.toUpperCase()"></span>
+          </div>
+          <p class="text-muted text-xs mt-1 leading-relaxed" x-text="leak.webrtc.text"></p>
+          <div x-show="leak.webrtcPublic.length || leak.webrtcLocal.length" class="font-mono text-xs mt-2 text-secondary space-y-0.5">
+            <template x-for="ip in leak.webrtcPublic" :key="ip"><div>public: <span class="text-error" x-text="ip"></span></div></template>
+            <template x-for="ip in leak.webrtcLocal" :key="ip"><div>local: <span x-text="ip"></span></div></template>
+          </div>
+        </div>
+        <!-- IPv6 -->
+        <div class="border border-app rounded-md p-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium">IPv6</span>
+            <span class="text-xs font-mono font-medium" :class="badgeClass(leak.ipv6.level)" x-text="leak.ipv6.level.toUpperCase()"></span>
+          </div>
+          <p class="text-muted text-xs mt-1 leading-relaxed" x-text="leak.ipv6.text"></p>
+        </div>
+        <!-- DNS -->
+        <div class="border border-app rounded-md p-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium">DNS</span>
+            <span class="text-xs font-mono font-medium text-muted">INFO</span>
+          </div>
+          <p class="text-muted text-xs mt-1 leading-relaxed">DNS leaks can't be tested from browser JavaScript alone, it needs server-side wildcard-DNS infrastructure. Run a dedicated test:</p>
+          <a href="https://www.dnsleaktest.com/" target="_blank" rel="noopener"
+             class="text-accent hover:underline text-xs font-mono mt-1 inline-block">dnsleaktest.com ↗</a>
+        </div>
+
+        <p class="text-muted leading-relaxed" style="font-size:10px;">Tests run locally in your browser via a public STUN server (WebRTC) and IPv6/IPv4 echo endpoints (ipify). No data is sent to Clearfront.</p>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<header class="cf-hidden flex-none h-12 bg-surface border-b border-app flex items-center px-4 gap-3 z-10"
+        :class="revealChrome && (bootAnim ? 'cf-reveal-in' : 'cf-shown')">
+  <!-- wordmark: lowercase IBM Plex Mono regular, version as muted baseline metadata -->
+  <div class="flex items-baseline flex-none gap-2">
+    <span class="text-sm" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:400;">clearfront</span>
+    <span class="text-muted" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.02em;font-variant-numeric:tabular-nums;">v<span x-text="version"></span></span>
+  </div>
+
+  <div class="flex-1"></div>
+
+  <!-- right: backend status readout + controls -->
+  <div class="flex items-center gap-1.5 flex-none">
+    <!-- backend status readout -->
+    <button @click="showSettings = true"
+            :title="aiBackend === 'none' ? 'No AI backend configured, click to set up' : 'AI backend, click to change'"
+            class="hidden sm:flex items-center gap-2 font-mono text-xs px-2.5 py-1 rounded border border-app text-secondary bg-transparent hover:text-primary hover:border-strong transition-colors cursor-pointer whitespace-nowrap">
+      <span class="w-1.5 h-1.5 rounded-full flex-none"
+            :style="aiBackend === 'none' ? 'background-color:var(--red)' : 'background-color:var(--text-muted)'"></span>
+      <span x-show="aiBackend === 'claude'" x-text="claudeModelLabel"></span>
+      <span x-show="aiBackend === 'ollama'">Ollama <span x-text="settings.ollamaModel"></span></span>
+      <span x-show="aiBackend === 'openai'">OpenAI <span x-text="settings.openaiModel || 'model'"></span></span>
+      <span x-show="aiBackend === 'none'">Not configured</span>
+    </button>
+    <div class="hidden sm:block w-px h-5 bg-border mx-0.5"></div>
+    <button @click="openLeakTest()"
+            aria-label="IP leak test"
+            title="Browser IP leak test (WebRTC / IPv6 / DNS)"
+            class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface transition-colors">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </button>
+    <button @click="toggleTheme()"
+            aria-label="Toggle theme"
+            :title="isLight ? 'Switch to dark theme' : 'Switch to light theme'"
+            class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface transition-colors">
+      <!-- sun icon shown in dark mode -->
+      <svg x-show="!isLight" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <!-- moon icon shown in light mode -->
+      <svg x-show="isLight" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+    <button @click="showSettings = true"
+            aria-label="Settings"
+            title="Settings"
+            class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface transition-colors">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+    <button @click="clearConversation()"
+            aria-label="Clear conversation"
+            title="Clear conversation"
+            :disabled="messages.length === 0"
+            class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface disabled:opacity-25 disabled:cursor-not-allowed transition-colors">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- CHAT AREA -->
+<div id="chat-area" class="flex-1 overflow-y-auto">
+  <div class="max-w-2xl mx-auto px-4 py-6 min-h-full flex flex-col">
+
+    <!-- empty state -->
+    <div x-show="messages.length === 0"
+         class="flex-1 flex flex-col justify-center py-16">
+      <div class="hero mb-8 cf-hidden" :class="revealHero && (bootAnim ? 'cf-hero-in' : 'cf-shown')">
+      <!--HERO_START--><pre class="hero-ascii font-mono text-secondary select-none hidden sm:block" aria-label="CLEARFRONT"> ██████╗██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
+██╔════╝██║     ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔═══██╗████╗  ██║╚══██╔══╝
+██║     ██║     █████╗  ███████║██████╔╝█████╗  ██████╔╝██║   ██║██╔██╗ ██║   ██║   
+██║     ██║     ██╔══╝  ██╔══██║██╔══██╗██╔══╝  ██╔══██╗██║   ██║██║╚██╗██║   ██║   
+╚██████╗███████╗███████╗██║  ██║██║  ██║██║     ██║  ██║╚██████╔╝██║ ╚████║   ██║   
+ ╚═════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
+
+────────────────────────────────────────────────────────────────────────────────────
+OPEN-SOURCE INTELLIGENCE                                     AUTHORIZED USE · v<span x-text="version"></span></pre><!--HERO_END-->
+        <div class="hero-lockup font-mono text-primary select-none block sm:hidden" aria-label="CLEARFRONT">CLEARFRONT</div>
+        <div class="border-t border-app mt-4 pt-2 flex items-center justify-between font-mono text-secondary gap-3 sm:hidden" style="font-size:10px;letter-spacing:0.05em;">
+          <span>OPEN-SOURCE INTELLIGENCE</span>
+          <span class="text-muted whitespace-nowrap">AUTHORIZED USE</span>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div>
+          <p class="font-mono text-muted uppercase mb-1.5 cf-hidden"
+             :class="revealChips && (bootAnim ? 'cf-row-in' : 'cf-shown')"
+             style="font-size:10px;letter-spacing:0.12em;">Self-check</p>
+          <div class="border-t transition-colors duration-300" :class="revealChips ? 'border-app' : 'border-transparent'">
+            <template x-for="(s, i) in selfChecks" :key="s.title">
+              <button @click="sendSuggestion(s.prompt, s.title)"
+                      class="cf-hidden w-full border-b border-app flex items-center gap-3 px-2 py-2.5 text-left text-secondary hover:text-primary hover:bg-faint cursor-pointer transition-colors bg-transparent"
+                      :class="revealChips && (bootAnim ? 'cf-row-in' : 'cf-shown')"
+                      :style="'animation-delay:' + ((i + 1) * 55) + 'ms'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-60" x-html="s.svgIcon"></svg>
+                <span class="font-mono truncate" style="font-size:13px;" x-text="s.title"></span>
+                <span class="ml-auto flex items-center gap-2.5 flex-none">
+                  <span class="hidden sm:block font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-30"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+              </button>
+            </template>
+          </div>
+        </div>
+        <div>
+          <p class="font-mono text-muted uppercase mb-1.5 cf-hidden"
+             :class="revealChips && (bootAnim ? 'cf-row-in' : 'cf-shown')"
+             :style="'font-size:10px;letter-spacing:0.12em;animation-delay:' + ((selfChecks.length + 1) * 55) + 'ms'">Investigate a target</p>
+          <div class="border-t transition-colors duration-300" :class="revealChips ? 'border-app' : 'border-transparent'">
+            <template x-for="(s, i) in investigations" :key="s.title">
+              <button @click="sendSuggestion(s.prompt, s.title)"
+                      class="cf-hidden w-full border-b border-app flex items-center gap-3 px-2 py-2.5 text-left text-secondary hover:text-primary hover:bg-faint cursor-pointer transition-colors bg-transparent"
+                      :class="revealChips && (bootAnim ? 'cf-row-in' : 'cf-shown')"
+                      :style="'animation-delay:' + ((selfChecks.length + 2 + i) * 55) + 'ms'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-60" x-html="s.svgIcon"></svg>
+                <span class="font-mono truncate" style="font-size:13px;" x-text="s.title"></span>
+                <span class="ml-auto flex items-center gap-2.5 flex-none">
+                  <span class="hidden sm:block font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-30"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- messages -->
+    <div x-show="messages.length > 0" class="space-y-1 pb-4">
+      <template x-for="(msg, mi) in messages" :key="mi">
+        <div class="c-fadein">
+
+          <!-- user message -->
+          <div x-show="msg.role === 'user'" class="flex flex-col items-end mb-4">
+            <p class="text-primary text-sm leading-relaxed whitespace-pre-wrap max-w-[80%] text-right" x-text="msg.content"></p>
+            <span class="text-muted text-xs mt-1 font-mono" x-text="msg.time || ''"></span>
+          </div>
+
+          <!-- assistant block -->
+          <div x-show="msg.role === 'assistant'" class="mb-6">
+            <div x-show="msg.parts.length === 0"
+                 class="flex items-center gap-1.5 text-muted text-xs font-mono">
+              <span class="inline-block c-blink">_</span>thinking
+            </div>
+            <div class="space-y-3">
+              <template x-for="(part, pi) in msg.parts" :key="part._k || pi">
+                <div>
+                  <!-- text / intelligence report -->
+                  <div x-show="part.type === 'text'" class="bg-surface border border-app rounded-md overflow-hidden">
+                    <div class="px-3 py-2 flex items-center justify-between gap-2">
+                      <span class="font-mono text-xs text-secondary" x-text="panelLabel(msg, pi)"></span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-mono text-xs text-muted" x-text="reportStamp(msg)"></span>
+                        <template x-if="!part.streaming && part.content">
+                          <div class="flex items-center gap-2 font-mono text-xs">
+                            <button @click.stop="copyText(part.content)"
+                                    class="text-muted hover:text-secondary transition-colors" title="Copy report to clipboard">copy</button>
+                            <button @click.stop="downloadReport(part, msg, 'md')"
+                                    class="text-muted hover:text-secondary transition-colors" title="Download as Markdown">.md</button>
+                            <button @click.stop="downloadReport(part, msg, 'pdf')"
+                                    class="text-muted hover:text-secondary transition-colors" title="Download as PDF">.pdf</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                    <div class="report-body border-t border-app bg-app px-3 py-2.5">
+                      <div class="md font-mono text-xs leading-relaxed text-primary" x-html="renderMarkdown(part.content)"></div>
+                      <span x-show="part.streaming" class="text-accent ml-0.5 inline-block c-blink">|</span>
+                    </div>
+                  </div>
+
+                  <!-- tool card -->
+                  <div x-show="part.type === 'tool'"
+                       class="bg-surface border border-app rounded-md mb-2 overflow-hidden">
+                    <div class="px-3 py-2 flex items-center justify-between">
+                      <button @click="part.collapsed = !part.collapsed"
+                              class="flex items-center gap-2 min-w-0 flex-1 text-left">
+                        <span class="font-mono text-xs text-secondary flex-none" x-text="part.tool"></span>
+                        <span class="text-muted text-xs truncate" x-text="part.input || ''"></span>
+                      </button>
+                      <div class="flex items-center gap-2 flex-none ml-3">
+                        <template x-if="exposureVerdict(part.output)">
+                          <span class="font-mono font-bold px-1.5 py-0.5 rounded border"
+                                style="font-size:10px;letter-spacing:0.04em;"
+                                :class="'vb-'+exposureVerdict(part.output).level"
+                                x-text="exposureVerdict(part.output).label"></span>
+                        </template>
+                        <span class="text-xs font-mono"
+                              :class="{
+                                'text-warning': part.status === 'running',
+                                'text-accent':  part.status === 'done',
+                                'text-error':   part.status === 'error'
+                              }">
+                          <span x-show="part.status === 'running'" class="inline-flex items-center gap-1">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="c-spin">
+                              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                            </svg>
+                            running
+                          </span>
+                          <span x-show="part.status === 'done'" x-text="part.elapsed ? part.elapsed + 's' : 'done'"></span>
+                          <span x-show="part.status === 'error'">error</span>
+                        </span>
+                        <button x-show="part.output" @click.stop="copyText(part.output)"
+                                class="text-muted hover:text-secondary transition-colors p-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                          </svg>
+                        </button>
+                        <button @click.stop="part.collapsed = !part.collapsed"
+                                class="text-muted hover:text-secondary transition-colors p-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                               :class="part.collapsed ? '' : 'rotate-180'"
+                               class="transition-transform">
+                            <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div x-show="!part.collapsed && part.output"
+                         class="border-t border-app bg-app px-3 py-2 max-h-64 overflow-y-auto">
+                      <template x-if="exposureVerdict(part.output)">
+                        <div class="flex items-center gap-2.5 mb-2 pb-2 border-b border-app">
+                          <span class="font-mono text-xs font-bold px-2 py-0.5 rounded border"
+                                :class="'vb-'+exposureVerdict(part.output).level"
+                                x-text="exposureVerdict(part.output).label"></span>
+                          <span class="font-mono text-xs text-secondary" x-text="exposureVerdict(part.output).summary"></span>
+                          <span class="ml-auto font-mono text-muted" style="font-size:10px;" x-text="exposureVerdict(part.output).ip"></span>
+                        </div>
+                      </template>
+                      <template x-for="(line, li) in (part.output || '').split('\n')" :key="li">
+                        <div class="font-mono text-xs leading-relaxed whitespace-pre-wrap break-all"
+                             :class="lineClass(line)"
+                             x-text="line || ' '"></div>
+                      </template>
+                    </div>
+                    <!-- satellite location map (shown when the result carries lat,lng) -->
+                    <template x-if="extractCoords(part.output)">
+                      <div class="border-t border-app bg-app px-3 py-2">
+                        <template x-if="googleMapsKey">
+                          <iframe :src="mapEmbedUrl(extractCoords(part.output))"
+                                  class="map-mono" width="100%" height="240" style="border:0;border-radius:6px;"
+                                  loading="lazy" allowfullscreen
+                                  title="Approximate IP location (monochrome satellite, hover for full colour)"></iframe>
+                        </template>
+                        <div class="flex items-center justify-between mt-1 gap-2">
+                          <span class="font-mono text-muted" style="font-size:10px;">📍 Approximate, IP geolocation is city-level, not an exact address</span>
+                          <a :href="mapLinkUrl(extractCoords(part.output))" target="_blank" rel="noopener"
+                             class="font-mono text-accent hover:underline flex-none" style="font-size:10px;">Open in Google Maps ↗</a>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- evidence graph part (3D force-directed) -->
+                  <div x-show="part.type === 'graph' && part._expanded" class="cf-graph-backdrop c-fadein"
+                       @click="toggleGraphExpand(part)"></div>
+                  <div x-show="part.type === 'graph'"
+                       class="bg-surface border border-app rounded-md overflow-hidden mt-1 mb-2 relative"
+                       :class="part._expanded ? 'cf-graph-expanded' : ''"
+                       @keydown.escape.window="part._expanded && toggleGraphExpand(part)">
+                    <div class="px-3 py-2 flex items-center justify-between cursor-pointer select-none hover:bg-faint transition-colors"
+                         @click="toggleGraphExpand(part)" :title="part._expanded ? 'Click to collapse' : 'Click to expand to fullscreen'">
+                      <span class="font-mono text-xs"><span class="text-secondary">EVIDENCE GRAPH</span><span class="text-muted" x-text="', ' + (part.graph && part.graph.nodes ? part.graph.nodes.length : 0) + ' entities'"></span></span>
+                      <div class="flex items-center gap-3 flex-none">
+                        <div class="flex items-center gap-2 font-mono text-xs" x-show="part.graph && part.graph.nodes && part.graph.nodes.length">
+                          <button @click.stop="downloadGraph(part, msg, 'graphml')"
+                                  class="text-muted hover:text-secondary transition-colors" title="Download as GraphML (Gephi, yEd, Maltego)">.graphml</button>
+                          <button @click.stop="downloadGraph(part, msg, 'json')"
+                                  class="text-muted hover:text-secondary transition-colors" title="Download as JSON (D3 node-link)">.json</button>
+                          <button @click.stop="downloadGraph(part, msg, 'mermaid')"
+                                  class="text-muted hover:text-secondary transition-colors" title="Download as Mermaid diagram">.mmd</button>
+                        </div>
+                        <button @click.stop="toggleGraphExpand(part)" class="flex items-center gap-1 text-muted hover:text-primary transition-colors flex-none">
+                          <span class="font-mono text-xs" x-text="part._expanded ? 'collapse' : 'click to expand'"></span>
+                          <svg x-show="!part._expanded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                          <svg x-show="part._expanded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cf-graph-canvas border-t border-app" style="height:380px;background:var(--bg);"
+                         :data-cf-gid="part.gid"
+                         x-init="$nextTick(() => initEvidenceGraph($el, part))"></div>
+                    <!-- styled usage hint (replaces the library's default nav overlay) -->
+                    <div class="absolute bottom-2 left-0 right-0 text-center pointer-events-none font-mono text-muted z-10" style="font-size:10px;letter-spacing:0.02em;">drag to rotate · scroll to zoom · right-drag to pan</div>
+                    <template x-if="part.graphSel">
+                      <div class="absolute top-11 right-2 w-56 bg-surface border border-app rounded-md shadow-xl p-3 z-20 c-fadein overflow-y-auto" style="max-height:330px;"
+                           @click.outside="part.graphSel = null">
+                        <div class="flex items-center justify-between mb-1.5">
+                          <span class="font-mono text-xs font-bold tracking-wide"
+                                :style="part.graphSel.severity === 'risk' ? 'color:var(--red)' : (part.graphSel.severity === 'watch' ? 'color:var(--yellow)' : 'color:var(--text-secondary)')"
+                                x-text="part.graphSel.type || 'ENTITY'"></span>
+                          <button @click="part.graphSel = null" class="text-muted hover:text-primary transition-colors">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                        <div class="font-mono text-sm text-primary break-all mb-2 leading-snug" x-text="part.graphSel.value || part.graphSel.label"></div>
+                        <div class="space-y-1.5 font-mono text-xs">
+                          <div x-show="part.graphSel.source" class="flex justify-between gap-2"><span class="text-muted flex-none">source</span><span class="text-secondary text-right break-all min-w-0" x-text="part.graphSel.source"></span></div>
+                          <div x-show="part.graphSel.confidence" class="flex justify-between gap-2"><span class="text-muted flex-none">confidence</span><span class="text-secondary text-right break-all min-w-0" x-text="part.graphSel.confidence"></span></div>
+                          <div x-show="part.graphSel.neighbors && part.graphSel.neighbors.length">
+                            <div class="text-muted mb-0.5" x-text="'linked (' + part.graphSel.neighbors.length + ')'"></div>
+                            <div class="text-secondary break-words leading-relaxed" x-text="(part.graphSel.neighbors || []).join(', ')"></div>
+                          </div>
+                        </div>
+                        <button @click="pivotEntity(part, part.graphSel)" :disabled="isStreaming"
+                                class="w-full mt-3 border border-app rounded px-2 py-1.5 font-mono text-xs text-secondary hover:text-primary hover:border-strong hover:bg-faint transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+                          Run more tools on this
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </template>
+    </div>
+
+  </div>
+</div>
+
+<!-- INPUT BAR -->
+<div class="cf-hidden flex-none bg-app border-t border-app px-4 py-3"
+     :class="revealChrome && (bootAnim ? 'cf-reveal-in' : 'cf-shown')">
+  <div class="max-w-2xl mx-auto">
+    <div class="input-shell border border-app rounded-md flex items-center gap-2 px-3 py-2">
+      <textarea
+        id="chat-input"
+        aria-label="Message input"
+        x-model="input"
+        @keydown="if ($event.key === 'Enter' && !$event.shiftKey && !$event.isComposing) { $event.preventDefault(); sendMessage(); }"
+        @input="autoResize($event.target)"
+        :disabled="isStreaming"
+        placeholder="Investigate a target or ask a question..."
+        rows="1"
+        style="min-height:22px; max-height:160px;"
+        class="flex-1 bg-transparent resize-none text-sm text-primary placeholder-muted overflow-y-auto font-sans leading-relaxed disabled:opacity-40"
+      ></textarea>
+      <button @click="sendMessage()"
+              :disabled="isStreaming || !input.trim()"
+              class="flex-none w-7 h-7 rounded bg-accent hover:bg-accent-80 disabled:opacity-30 disabled:cursor-not-allowed text-bg flex items-center justify-center transition-colors">
+        <svg x-show="!isStreaming" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+        </svg>
+        <svg x-show="isStreaming" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="c-spin">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end x-data -->
+
+<!-- ALPINE COMPONENT, must come before Alpine CDN -->
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('clearfront', () => ({
+    version: '2.5.0',
+    booting: false,
+    bootLines: [],
+    bootAnim: false,
+    revealHero: false,
+    revealChrome: false,
+    revealChips: false,
+    messages: [],
+    chatHistory: [],
+    input: '',
+    isStreaming: false,
+    aiBackend: 'none',
+    claudeModelLabel: 'Claude',
+    googleMapsKey: '',
+    showSettings: false,
+    showLeakTest: false,
+    leak: {
+      running: false, ran: false, httpIp: null,
+      webrtcPublic: [], webrtcLocal: [],
+      webrtc: { level: 'ok', text: '' },
+      ipv6: { level: 'ok', text: '' },
+    },
+    showAdvancedKeys: false,
+    setupMsg: '',
+    setupOk: false,
+    ollamaTestResult: '',
+    ollamaTestOk: false,
+    openaiTestResult: '',
+    openaiTestOk: false,
+    tools: [],
+    featuredSponsors: [],
+    showKeys: {},
+    setupData: {},
+    isLight: false,
+
+    settings: {
+      chatModel: 'claude',
+      ollamaModel: 'llama3.2',
+      ollamaHost: 'http://localhost:11434',
+      openaiBaseUrl: '',
+      openaiModel: '',
+      openaiApiKey: '',
+    },
+
+    // one-click self-checks (no input needed), the thesis-core actions
+    selfChecks: [
+      {
+        svgIcon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+        title: 'Check my exposure',
+        desc: 'Open ports, blocklists & risk',
+        prompt: 'Check my own internet exposure: run search_exposure with no argument (self-lookup) and give me a ranked report of what is exposed about my IP, open ports/services, blocklist/DNSBL status, VPN/proxy/Tor flags, with fix-first recommendations.',
+      },
+      {
+        svgIcon: '<path stroke-linecap="round" stroke-linejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33"/>',
+        title: 'Check my identity',
+        desc: 'Map your digital footprint',
+        prompt: 'Check my own identity exposure. This is an authorized self-check of my own identifiers. First, open by asking me for the seed, and you MUST always include the linked-identity confirmation in that question. Use this exact phrasing or a close variation: "Provide the email address and/or username to check. If supplying both, confirm whether they are linked to the same identity." Once I give it, run a full entity investigation, not a prose summary: find my linked accounts (search_email, search_maigret, search_username), breaches and pastes (search_breach, search_paste), and wider footprint (search_footprint), then enrich every strong pivot you find (each real name, additional handle, email, personal domain, or company), chaining outward to the new entities those reveal until the tool budget is reached. Surface every account, breach, paste, email, domain, and name you find and how they connect through shared pivots, so the evidence graph (generated automatically after your report) is a complete, densely connected map of how my footprint links together. Do not emit a graph block yourself.',
+      },
+      {
+        svgIcon: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+        title: 'Check my number',
+        desc: 'Where your number is exposed',
+        prompt: 'Check my own phone number exposure. This is an authorized self-check of my own number. First, ask me for the phone number to check in E.164 format (for example +447911123456). Once I give it, run a full entity investigation, not a prose summary: validate and profile the number with search_phone (carrier, country, and line type: mobile, VoIP, or landline), check data breaches with search_breach passing the number in HIBP format (country code and digits only, no plus sign or spaces), check paste sites with search_paste, and map where the number appears publicly with search_footprint (search the number in quotes). Specifically check whether the number is listed on public people-search and data-broker sites (for example Whitepages, Spokeo, BeenVerified, TruePeopleSearch, Radaris, and UK sites like 192.com) using search_dorks_live or site-scoped SERP queries, and report any broker pages that surface. Identify connected online accounts only from public evidence: the number shown on a public profile, or a breach record that ties the number to an account. Do not enumerate platform registration through password-reset or signup flows, which is active probing and out of scope. If the footprint surfaces a name, email, or accounts tied to the number, enrich every strong pivot you find (each name, email, domain, or account), chaining outward to the new entities those reveal within the tool budget, so the evidence graph becomes a complete, densely connected map of how my number links to my wider footprint. Assess the findings against the phone threat model: SIM-swap and port-out risk (higher for a SIM-backed mobile reused for 2FA), SMS or 2FA interception, spam and scam targeting, and doxxing linkage where the number connects to my identity. Note honestly that HIBP phone-breach coverage is limited to the few breaches that loaded phone numbers. Give me a ranked, fix-first report (for example: move 2FA off SMS to an authenticator app or passkey, set a carrier port-out or SIM-swap PIN, remove the number from data-broker listings) and surface the number, carrier, breaches, pastes, linked accounts, emails, and names you find and how they connect through shared pivots, so the evidence graph (generated automatically after your report) is complete. Do not emit a graph block yourself.',
+      },
+      {
+        svgIcon: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+        title: 'Check my IP',
+        desc: 'What your IP reveals',
+        prompt: 'Check my own public IP address: run search_ip with no argument (self-lookup) and tell me my exit IP, geolocation, ASN/ISP, and whether it looks like a VPN.',
+      },
+    ],
+
+    // investigate a supplied target, assistant prompts for the value
+    investigations: [
+      {
+        svgIcon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/>',
+        title: 'Email',
+        desc: 'Linked accounts & breaches',
+        prompt: 'Investigate an email address, please ask me for it.',
+      },
+      {
+        svgIcon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        title: 'Username',
+        desc: 'Trace across 3,400+ sites',
+        prompt: 'Trace a username across social platforms, please ask me for it.',
+      },
+      {
+        svgIcon: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+        title: 'IP address',
+        desc: 'Geolocation & threat intel',
+        prompt: 'Analyze an IP address for geolocation and threat intel, please ask me for it.',
+      },
+      {
+        svgIcon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
+        title: 'Domain',
+        desc: 'WHOIS · DNS · subdomains',
+        prompt: 'Gather intelligence on a domain, please ask me for it.',
+      },
+    ],
+
+    // getUrl = the provider's official "Get a key" page, shown next to each field
+    // in Settings so a user can obtain the key they are missing.
+    apiKeys: [
+      { key: 'ANTHROPIC_API_KEY',   label: 'Anthropic API Key',      placeholder: 'sk-ant-api03-...',      primary: true,  getUrl: 'https://console.anthropic.com/settings/keys' },
+      { key: 'HIBP_API_KEY',        label: 'HaveIBeenPwned API Key', placeholder: 'your-hibp-key',         primary: false, getUrl: 'https://haveibeenpwned.com/API/Key' },
+      { key: 'IPINFO_TOKEN',        label: 'IPInfo Token',           placeholder: 'your-ipinfo-token',     primary: false, getUrl: 'https://ipinfo.io/signup' },
+      { key: 'IP2LOCATION_API_KEY', label: 'IP2Location API Key',    placeholder: 'your-ip2location-key',  primary: false, getUrl: 'https://www.ip2location.io' },
+      { key: 'CENSYS_PAT',          label: 'Censys Access Token',    placeholder: 'censys_...',            primary: false, getUrl: 'https://platform.censys.io' },
+      { key: 'CENSYS_ORG_ID',       label: 'Censys Org ID',          placeholder: 'censys-org-id',         primary: false, getUrl: 'https://platform.censys.io' },
+      { key: 'SHODAN_API_KEY',      label: 'Shodan API Key',         placeholder: 'your-shodan-key',       primary: false, getUrl: 'https://account.shodan.io' },
+      { key: 'VIRUSTOTAL_API_KEY',  label: 'VirusTotal API Key',     placeholder: 'your-virustotal-key',   primary: false, getUrl: 'https://www.virustotal.com/gui/my-apikey' },
+      { key: 'EMAILREP_API_KEY',    label: 'EmailRep.io API Key',    placeholder: 'free key from emailrep.io/free', primary: false, getUrl: 'https://emailrep.io/free' },
+      { key: 'GOOGLE_MAPS_API_KEY', label: 'Google Maps Embed Key',  placeholder: 'AIza… (referrer-locked to 127.0.0.1:8080)', primary: false, getUrl: 'https://console.cloud.google.com/google/maps-apis/credentials' },
+    ],
+
+    // lifecycle
+    init() {
+      this.loadSettings();
+      // First visit → follow the OS preference; after that, honour their saved choice.
+      const saved = localStorage.getItem('clearfront-theme');
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      this.isLight = saved ? saved === 'light' : prefersLight;
+      if (this.isLight) document.documentElement.classList.add('light');
+      // EDEX-style boot: play once per browser session, never under reduced-motion.
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.booting = !sessionStorage.getItem('cf-booted') && !reduce;
+      if (this.booting) {
+        this.bootAnim = true;        // boot drives the staged reveal of the UI
+        this.runBoot();
+      } else {
+        // no boot this load → show the whole UI immediately (no choreography)
+        this.bootAnim = false;
+        this.revealHero = this.revealChrome = this.revealChips = true;
+      }
+      this.$nextTick(() => {
+        this.fetchHealth();
+        this.fetchSponsors();
+        if (!this.booting) document.getElementById('chat-input')?.focus();
+      });
+    },
+
+    // the 22 collection modules, enumerated for the boot manifest (name · backing engine)
+    _bootModules: [
+      ['search_email', 'holehe'], ['search_username', 'sherlock'], ['search_maigret', 'maigret'],
+      ['search_footprint', 'serp'], ['search_breach', 'hibp'], ['search_paste', 'hibp/serp'],
+      ['search_ip', 'ipinfo'], ['search_exposure', 'composite'], ['search_domain', 'rdap/dns'],
+      ['search_whois', 'rdap'], ['search_dns', 'resolver'], ['search_github', 'api'],
+      ['generate_dorks', 'engine'], ['search_dorks_live', 'serp'], ['scrape_url', 'unlocker'],
+      ['search_phone', 'phoneinfoga'], ['search_shodan', 'shodan'], ['search_virustotal', 'virustotal'],
+      ['search_censys', 'censys'], ['search_ip2location', 'ip2location'], ['search_abuseipdb', 'abuseipdb'],
+      ['search_exif', 'exiftool'],
+    ],
+
+    // the boot log: an authentic dmesg-style kernel boot dump in the eDEX-UI register
+    // (real XNU/macOS kernel noise, lightly CLEARFRONT-themed). The only product-specific
+    // lines are the 22 collection tools loading as kexts; no marketing copy. Pacing copies
+    // eDEX-UI: a slow 3-line intro, fast bursts, a short hitch ~1/3 in and a longer one
+    // ~halfway, then a blank line and "Boot Complete". [text, delay-before-next-ms] pairs.
+    _bootLog() {
+      const v = this.version;
+      const mods = this._bootModules.map(m => m[0]);
+      const boot = new Date().toString();   // local date+time+timezone, accurate to this session (eDEX format)
+      const SLOW = 500, FAST = 26, RAPID = 14, HITCH1 = 460, HITCH2 = 1100;
+      const L = [];
+      const add = (t, d = FAST) => L.push([t, d]);
+      const rapid = (t) => L.push([t, RAPID]);
+
+      // slow, deliberate intro (3 lines)
+      add('Welcome to CLEARFRONT', SLOW);
+      add('vm_page_bootstrap: 987323 free pages and 53061 wired pages', SLOW);
+      add(`CLEARFRONT kernel version ${v} boot at ${boot}; root:xnu-2422.115.4~1/RELEASE_X86_64`, SLOW);
+      // fast burst
+      add('kernel text [0xffffff8000200000 - 0xffffff8000a72000]');
+      add('zone leak detection enabled');
+      add('standard timeslicing quantum is 10000 us');
+      add('mig_table_max_displ = 73');
+      add('TSC Deadline Timer supported and enabled');
+      rapid('cf_acpi_cpu: ProcessorId=1 LocalApicId=0 Enabled');
+      rapid('cf_acpi_cpu: ProcessorId=2 LocalApicId=2 Enabled');
+      rapid('cf_acpi_cpu: ProcessorId=3 LocalApicId=1 Enabled');
+      rapid('cf_acpi_cpu: ProcessorId=4 LocalApicId=3 Enabled');
+      rapid('cf_acpi_cpu: ProcessorId=5 LocalApicId=255 Disabled');
+      rapid('cf_acpi_cpu: ProcessorId=6 LocalApicId=255 Disabled');
+      rapid('cf_acpi_cpu: ProcessorId=7 LocalApicId=255 Disabled');
+      add('cf_acpi_cpu: ProcessorId=8 LocalApicId=255 Disabled');
+      add('calling mpo_policy_init for TMSafetyNet');
+      add('Security policy loaded: Safety net for rollback (TMSafetyNet)');
+      add('calling mpo_policy_init for Sandbox');
+      add('Security policy loaded: Seatbelt sandbox policy (Sandbox)');
+      add('calling mpo_policy_init for Quarantine');
+      add('Security policy loaded: Quarantine policy (Quarantine)');
+      add('Copyright (c) 2026 Clearfront Systems. All rights reserved.');
+      add(' ', HITCH1);   // blank section break + short hitch (~1/3 in)
+      // fast burst
+      add('HN_ framework successfully initialized');
+      add('using 16384 buffer headers and 10240 cluster IO buffer headers');
+      add('IOAPIC: Version 0x20 Vectors 64:87');
+      add('ACPI: System State [S0 S3 S4 S5] (S3)');
+      add('PFM64 0xf10000000, 0xf0000000');
+      add('[ PCI configuration begin ]');
+      add('console relocated to 0xf10000000');
+      add('PCI configuration changed (bridge=16 device=4 cardbus=0)');
+      add('[ PCI configuration end, bridges 12 devices 16 ]');
+      add('mbinit: done [64 MB total pool size, (42/21) split]');
+      add('Pthread support ABORTS when sync kernel primitives misused');
+      mods.forEach(name => rapid(`com.clearfront.collect.${name}: kmod start`));
+      rapid('com.clearfront.kext.EvidenceGraphEngine: kmod start');
+      add('com.clearfront.kext.EvidenceGraphEngine load succeeded');
+      add(' ', HITCH2);   // blank section break + longer hitch (~halfway)
+      // fast run to the end
+      add('BTCOEXIST off');
+      add('wl0: Broadcom BCM4331 802.11 Dual-Band Wireless Controller');
+      add('5.100.98.75');
+      add(' ', 150);   // blank section break before FireWire
+      add('FireWire (OHCI) Lucent ID 5901 built-in now active, GUID c82a14fffee4a086; max speed s800.');
+      add('rooting via boot-uuid from /chosen: 5F670083-AC74-33D3-8361-AC1977EE4AA2');
+      add('Waiting on <dict ID="0"><key>IOProviderClass</key><string ID="1">');
+      add('IOResources</string><key>IOResourceMatch</key><string ID="2">boot-uuid-media</string></dict>');
+      add('Got boot device = IOService:/AppleACPIPlatformExpert/PCI0@0/AppleACPIPCI/SATA@1F,2/...');
+      add('BSD root: disk0s2, major 14, minor 2');
+      add('Kernel is LP64');
+      rapid('IOThunderboltSwitch::i2cWriteDWord - status = 0xe00002ed');
+      rapid('IOThunderboltSwitch::i2cWriteDWord - status = 0x00000000');
+      add('IOThunderboltSwitch::i2cWriteDWord - status = 0xe00002ed');
+      add('[IOBluetoothHCIController::setConfigState] calling registerService');
+      add('AirPort_Brcm4331: Ethernet address e4:ce:8f:46:18:d2');
+      add('IO80211Controller::dataLinkLayerAttachComplete(): adding AppleEFINVRAM notification');
+      add('Created virtif 0xffffff800c32ee00 p2p0');
+      add('BCM5701Enet: Ethernet address c8:2a:14:57:a4:7a');
+      add('Previous Shutdown Cause: 5');
+      add('NTFS driver 3.8 [Flags: R/W].');
+      add('DSMOS has arrived');
+      add("en1: 802.11d country code set to 'US'.");
+      add('en1: Supported channels 1 2 3 4 5 6 7 8 9 10 11 36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 149 153 157 161 165');
+      add('MacAuthEvent en1 Auth result for: 00:60:64:1e:e9:e4 MAC AUTH succeeded');
+      add('wlEvent: en1 en1 Link UP');
+      add('AirPort: Link Up on en1');
+      add('en1: BSSID changed to 00:60:64:1e:e9:e4');
+      add('virtual bool IOHIDEventSystemUserClient::initWithTask(task*, void*, UInt32):');
+      add('Client task not privileged to open IOHIDSystem for mapping memory (e00002c1)', 360);
+      add(' ', 360);                 // blank line (the "space" before the sign-off)
+      add('Boot Complete', 0);       // final line; runBoot holds on it, then hard-cuts
+      return L;
+    },
+
+    async runBoot() {
+      for (const [text, delay] of this._bootLog()) {
+        if (!this.booting) return;          // skipped mid-stream → endBoot took over
+        this.bootLines.push(text);
+        await new Promise(r => setTimeout(r, delay));
+      }
+      await new Promise(r => setTimeout(r, 700));   // hold on "Boot Complete", then hard cut
+      this._stageReveal();
+    },
+
+    // boot ends abruptly (hard cut, no fade) → a beat of black → the UI comes online in
+    // stages: hero prints on top-to-bottom, then header + input, then the rows stagger in.
+    async _stageReveal() {
+      sessionStorage.setItem('cf-booted', '1');
+      this.booting = false;                 // instant hard cut to the (identical) black bg
+      await new Promise(r => setTimeout(r, 240));
+      if (!this.bootAnim) {                 // skipped during the beat → just show everything
+        this.revealHero = this.revealChrome = this.revealChips = true;
+        return;
+      }
+      this.revealHero = true;               // 1. hero prints on top-to-bottom (terminal style)
+      await new Promise(r => setTimeout(r, 700));
+      this.revealChrome = true;             // 2. header + input bar
+      this.$nextTick(() => document.getElementById('chat-input')?.focus());
+      await new Promise(r => setTimeout(r, 300));
+      this.revealChips = true;              // 3. command rows stagger in (eDEX-style)
+    },
+
+    // skip (click / any key during the boot log): drop straight to the full UI, no stagger
+    endBoot() {
+      if (!this.booting) return;
+      this.bootAnim = false;
+      this.booting = false;
+      sessionStorage.setItem('cf-booted', '1');
+      this.revealHero = this.revealChrome = this.revealChips = true;
+      this.$nextTick(() => document.getElementById('chat-input')?.focus());
+    },
+
+    // theme toggle
+    toggleTheme() {
+      this.isLight = !this.isLight;
+      if (this.isLight) {
+        document.documentElement.classList.add('light');
+        localStorage.setItem('clearfront-theme', 'light');
+      } else {
+        document.documentElement.classList.remove('light');
+        localStorage.setItem('clearfront-theme', 'dark');
+      }
+      this._reskinGraphs();
+    },
+
+    // settings persistence
+    loadSettings() {
+      try {
+        const s = localStorage.getItem('clearfront_settings');
+        if (s) Object.assign(this.settings, JSON.parse(s));
+      } catch {}
+    },
+
+    saveLocalSettings() {
+      try { localStorage.setItem('clearfront_settings', JSON.stringify(this.settings)); } catch {}
+    },
+
+    // health / tools
+    async fetchHealth() {
+      try {
+        const r = await fetch('/api/health');
+        if (!r.ok) return;
+        const d = await r.json();
+        this.version   = d.version    || this.version;
+        this.aiBackend = d.ai_backend || 'none';
+        this.claudeModelLabel = d.claude_model_label || this.claudeModelLabel;
+        this.googleMapsKey = d.google_maps_api_key || '';
+        if (d.ollama_host) this.settings.ollamaHost = d.ollama_host;
+        if (this.aiBackend === 'ollama') this.settings.chatModel = 'ollama';
+        else if (this.aiBackend === 'openai') this.settings.chatModel = 'openai';
+        else if (this.aiBackend === 'claude') this.settings.chatModel = 'claude';
+        this.fetchTools();
+      } catch {}
+    },
+
+    async fetchTools() {
+      try {
+        const r = await fetch('/api/tools');
+        if (r.ok) this.tools = await r.json();
+      } catch {}
+    },
+
+    async fetchSponsors() {
+      try {
+        const r = await fetch('/api/sponsors');
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.status === 'ok') {
+          this.featuredSponsors = (d.sponsors || []).filter(s => s.tier === 'featured');
+        }
+      } catch {}
+    },
+
+    // messaging
+    sendSuggestion(prompt, display) {
+      this.input = prompt;
+      this.sendMessage(display);
+    },
+
+    // `displayText` (optional) is shown in the chat bubble in place of the raw
+    // instruction. The analyst still receives the full prompt via chatHistory/payload,
+    // so chips can carry detailed tradecraft without dumping it into the transcript.
+    async sendMessage(displayText) {
+      const text = this.input.trim();
+      if (!text || this.isStreaming) return;
+
+      try {
+        const testResp = await fetch('/api/chat/test');
+        if (testResp.ok) {
+          const td = await testResp.json();
+          this.aiBackend = td.backend || 'none';
+        }
+      } catch {}
+
+      if (this.aiBackend === 'none') {
+        this._pushError('No AI backend configured. Add your ANTHROPIC_API_KEY in Settings, configure an OpenAI-compatible endpoint (OPENAI_BASE_URL), or start Ollama and select it as the backend.');
+        return;
+      }
+
+      this.input = '';
+      this.$nextTick(() => {
+        const ta = document.getElementById('chat-input');
+        if (ta) { ta.style.height = 'auto'; ta.style.height = '22px'; }
+      });
+
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      this.messages.push({ role: 'user', content: (displayText || text), time: now });
+      this.chatHistory.push({ role: 'user', content: text });
+
+      this.messages.push({ role: 'assistant', parts: [], ts: Date.now() });
+      // Track the index so all mutations go through the reactive proxy (this.messages[msgIdx])
+      // rather than a raw object reference, raw mutations bypass Alpine's reactivity and
+      // prevent the DOM from updating (x-for / x-show never re-run).
+      const msgIdx = this.messages.length - 1;
+      this.isStreaming = true;
+      this.scrollToBottom();
+
+      const payload = {
+        message: text,
+        history: this.chatHistory.slice(0, -1),
+        model: this.settings.chatModel,
+        ollama_model: this.settings.ollamaModel,
+        ollama_host: this.settings.ollamaHost,
+        openai_base_url: this.settings.openaiBaseUrl,
+        openai_model: this.settings.openaiModel,
+        openai_api_key: this.settings.openaiApiKey,
+      };
+
+      let fullText = '';
+      try {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          let errDetail = `HTTP ${resp.status}`;
+          try { const e = await resp.json(); errDetail += ': ' + (e.detail || JSON.stringify(e)); } catch {}
+          this.messages[msgIdx].parts.push({ type: 'text', content: `Server error: ${errDetail}`, streaming: false });
+          this.isStreaming = false;
+          return;
+        }
+
+        if (!resp.body) {
+          this.messages[msgIdx].parts.push({ type: 'text', content: 'Error: response body is null (browser may not support streaming).', streaming: false });
+          this.isStreaming = false;
+          return;
+        }
+
+        const reader  = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let curText = null;
+        let gotEvent = false;
+
+        const flushText = () => { if (curText) { curText.streaming = false; curText = null; } };
+
+        outer: while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            let evt;
+            try { evt = JSON.parse(raw); } catch (e) { console.warn('SSE parse error:', line, e); continue; }
+            gotEvent = true;
+
+            if (evt.type === 'text') {
+              if (!curText) {
+                this.messages[msgIdx].parts.push({ type: 'text', content: '', streaming: true });
+                // Read back through the reactive proxy so incremental content mutations
+                // also trigger Alpine DOM updates (for Claude's word-by-word streaming).
+                curText = this.messages[msgIdx].parts[this.messages[msgIdx].parts.length - 1];
+              }
+              curText.content += evt.content;
+              fullText += evt.content;
+              this.scrollToBottom();
+
+            } else if (evt.type === 'tool_start') {
+              flushText();
+              this.messages[msgIdx].parts.push({
+                type: 'tool', tool: evt.tool, input: evt.input || '',
+                status: 'running', output: '', elapsed: null, collapsed: false,
+              });
+              this.scrollToBottom();
+
+            } else if (evt.type === 'tool_result') {
+              const parts = this.messages[msgIdx].parts;
+              for (let i = parts.length - 1; i >= 0; i--) {
+                if (parts[i].type === 'tool' && parts[i].tool === evt.tool && parts[i].status === 'running') {
+                  parts[i].output = evt.output || '';
+                  parts[i].elapsed = evt.elapsed;
+                  parts[i].status = 'done';
+                  break;
+                }
+              }
+              this.scrollToBottom();
+
+            } else if (evt.type === 'done') {
+              flushText(); break outer;
+
+            } else if (evt.type === 'error') {
+              flushText();
+              this.messages[msgIdx].parts.push({ type: 'text', content: `Error: ${evt.message}`, streaming: false });
+              break outer;
+            }
+          }
+        }
+        flushText();
+        if (this.messages[msgIdx].parts.length === 0) {
+          this.messages[msgIdx].parts.push({ type: 'text', content: 'No response received from backend.', streaming: false });
+        }
+
+        this._extractGraph(this.messages[msgIdx]);
+        this._pivotInto = null;
+
+        const cleanFull = fullText.replace(/```graph[\s\S]*$/, '').trim();
+        if (cleanFull) {
+          this.chatHistory.push({ role: 'assistant', content: cleanFull });
+        } else if (this.messages[msgIdx].parts.some(p => p.type === 'tool')) {
+          const summary = this.messages[msgIdx].parts.filter(p => p.type === 'tool')
+            .map(p => `[Used ${p.tool} on "${p.input}"]`).join(' ');
+          this.chatHistory.push({ role: 'assistant', content: summary });
+        }
+
+      } catch (err) {
+        this.messages[msgIdx].parts.push({ type: 'text', content: `Connection error: ${err.message}`, streaming: false });
+      }
+
+      this.isStreaming = false;
+      this.scrollToBottom();
+    },
+
+    _pushError(msg) {
+      this.messages.push({ role: 'assistant', parts: [{ type: 'text', content: msg, streaming: false }] });
+    },
+
+    // Header label for an analyst text panel: the opening tasking line (before any tool has
+    // run in this message) is the "Intelligence Brief" (mission objective); once collection
+    // has produced findings, every panel after reports them, so it reads "Intelligence Report".
+    panelLabel(msg, pi) {
+      const before = (msg.parts || []).slice(0, pi);
+      const collected = before.some(p => p.type === 'tool');
+      return collected ? 'CLEARFRONT, Intelligence Report' : 'CLEARFRONT, Intelligence Brief';
+    },
+
+    // Right-slot marking: the OSINT source tag plus a military date-time group (DDHHMMZ MON YY),
+    // stamped from the message timestamp in Zulu (UTC) so the trailing Z is honest, as real intel
+    // products are. e.g. "OSINT / 270906Z JUN 26". Real metadata, not a repeated tagline.
+    reportStamp(msg) {
+      const d = (msg && msg.ts) ? new Date(msg.ts) : new Date();
+      const p = n => String(n).padStart(2, '0');
+      const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      const dtg = `${p(d.getUTCDate())}${p(d.getUTCHours())}${p(d.getUTCMinutes())}Z`;
+      return `OSINT / ${dtg} ${MON[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(-2)}`;
+    },
+
+    // ── Evidence graph (force-directed, Obsidian-style) ──────────────────
+    // Lift the AI's fenced ```graph JSON out of the report text onto msg.graph,
+    // and strip it from the report so only the written assessment shows.
+    _extractGraph(msg) {
+      if (!msg || !msg.parts) return;
+      for (let i = 0; i < msg.parts.length; i++) {
+        const p = msg.parts[i];
+        if (p.type !== 'text' || !p.content) continue;
+        if (!p.content.includes('```graph')) continue;
+        // Parse from the LAST graph fence: the dedicated pass appends the clean block last,
+        // and a long report may have emitted an earlier truncated/unclosed one before it.
+        const gi = p.content.lastIndexOf('```graph');
+        const after = p.content.slice(gi + 8);
+        const ci = after.indexOf('```');
+        const jsonStr = (ci === -1 ? after : after.slice(0, ci)).trim();
+        let g = null;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          if (parsed && Array.isArray(parsed.nodes) && parsed.nodes.length) {
+            g = { nodes: parsed.nodes, links: Array.isArray(parsed.links) ? parsed.links : [] };
+          }
+        } catch (e) { /* malformed/truncated graph: keep the report, skip the graph */ }
+        // The graph is always the final output, so strip from the FIRST fence to the end:
+        // this removes closed AND truncated/unclosed blocks so JSON never leaks as text.
+        const cleaned = p.content.replace(/```graph[\s\S]*$/, '').trim();
+        if (!g) { p.content = cleaned; continue; }
+        const split = this._splitReport(cleaned);
+        // Splicing one part into several confuses the x-for's index-based :key (Alpine then
+        // appends the new nodes at the end instead of in place, stranding the graph below the
+        // report). Give every spliced part a STABLE unique _k so it renders in array order.
+        // Pivot: grow the existing graph in place instead of adding a new one.
+        if (this._pivotInto && this._pivotInto.graph) {
+          this._mergeIntoGraph(this._pivotInto, g);
+          this._pivotInto = null;
+          const pk = 'pv' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+          const parts = [{ type: 'text', content: split.summary, streaming: false, _k: pk + '-sum' }];
+          if (split.rest) parts.push({ type: 'text', content: split.rest, streaming: false, _k: pk + '-det' });
+          msg.parts.splice(i, 1, ...parts);
+          return;
+        }
+        // Re-order to: summary -> evidence graph -> the detail sections.
+        const gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        const newParts = [{ type: 'text', content: split.summary, streaming: false, _k: gid + '-sum' },
+                          { type: 'graph', gid: gid, graph: g, graphSel: null, _expanded: false, _k: gid }];
+        if (split.rest) newParts.push({ type: 'text', content: split.rest, streaming: false, _k: gid + '-det' });
+        msg.parts.splice(i, 1, ...newParts);
+        return;
+      }
+    },
+
+    // Graph colour palette derived from the LIVE theme, so it can re-skin on toggle. After
+    // AlexW00/obsidian-3d-graph: every node is one uniform muted grey at rest; on hover the
+    // focused node + its neighbours light up bright (the "accent"), the rest stay muted (no
+    // dimming). CLEARFRONT keeps severity red/amber (its only data colour) and uses a bright
+    // monochrome pop instead of a coloured accent, per the no-decorative-colour house rule.
+    _graphPalette() {
+      const cs = getComputedStyle(document.documentElement);
+      const v = (name, fb) => (cs.getPropertyValue(name).trim() || fb);
+      const light = document.documentElement.classList.contains('light');
+      return {
+        light,
+        bg:   v('--bg', light ? '#f5f4f1' : '#0c0b09'),
+        node: v('--text-muted', light ? '#696d75' : '#7d7b79'),    // uniform node colour at rest
+        subj: v('--text-secondary', light ? '#5f636b' : '#908f8c'),// subject: a touch brighter
+        hi:   v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),  // highlight "accent" (mono pop)
+        part: v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),  // travelling particle colour
+        link:   light ? 'rgba(72,76,84,0.42)' : 'rgba(150,145,135,0.34)',   // resting links: a touch darker (light) / brighter (dark) so they read on the mono bg
+        linkhi: v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),
+        txt:  light ? 'rgba(60,64,72,0.85)' : 'rgba(211,209,203,0.82)',
+      };
+    },
+
+    // Re-colour every rendered graph to the current theme (called on theme toggle). The node
+    // and link accessors close over the live G._pal object, so mutating it in place and then
+    // re-triggering the accessors is enough (no need to redefine the highlight-aware closures).
+    _reskinGraphs() {
+      const fresh = this._graphPalette();
+      document.querySelectorAll('[data-cf-gid]').forEach(el => {
+        const G = el._fg;
+        if (!G || !G._pal) return;
+        Object.assign(G._pal, fresh);
+        try {
+          G.backgroundColor(G._pal.bg);
+          G.nodeColor(G.nodeColor())
+           .linkColor(G.linkColor())
+           .linkDirectionalParticleColor(G.linkDirectionalParticleColor());
+        } catch (e) {}
+      });
+    },
+
+    // Size nodes by connection degree (hubs grow). Shared by init and merge.
+    _sizeGraphNodes(graph) {
+      const deg = {};
+      (graph.links || []).forEach(l => {
+        const s = (l.source && l.source.id) ? l.source.id : l.source;
+        const t = (l.target && l.target.id) ? l.target.id : l.target;
+        deg[s] = (deg[s] || 0) + 1; deg[t] = (deg[t] || 0) + 1;
+      });
+      // Near-uniform sizing (AlexW00 look): mostly equal spheres with only a slight bump for
+      // hubs, so it reads as a cloud of points rather than a hub with big satellites.
+      (graph.nodes || []).forEach(n => { n.val = Math.min(3, 1 + (deg[n.id] || 0) * 0.13) + (n.type === 'SUBJECT' ? 0.6 : 0); });
+    },
+
+    // Merge a pivot's graph into an existing one in place (grow, don't replace).
+    // Dedupes nodes by value/label so re-mentioned entities don't double up.
+    _mergeIntoGraph(part, g) {
+      const ex = part.graph;
+      const keyOf = n => String(n.value || n.label || n.id || '').trim().toLowerCase();
+      const byKey = {};
+      ex.nodes.forEach(n => { byKey[keyOf(n)] = n.id; });
+      const idMap = {};
+      (g.nodes || []).forEach(n => {
+        const k = keyOf(n);
+        if (byKey[k]) { idMap[n.id] = byKey[k]; }
+        else { ex.nodes.push(n); byKey[k] = n.id; idMap[n.id] = n.id; }
+      });
+      const lk = (s, t) => s + '〉' + t;
+      const have = new Set(ex.links.map(l => lk((l.source && l.source.id) || l.source, (l.target && l.target.id) || l.target)));
+      (g.links || []).forEach(l => {
+        const s = idMap[l.source] || l.source, t = idMap[l.target] || l.target;
+        if (s === t) return;
+        if (!have.has(lk(s, t)) && !have.has(lk(t, s))) { ex.links.push({ source: s, target: t }); have.add(lk(s, t)); }
+      });
+      this._sizeGraphNodes(ex);
+      const el = document.querySelector('[data-cf-gid="' + part.gid + '"]');
+      const G = el && el._fg;
+      if (G) {
+        G.graphData({ nodes: ex.nodes, links: ex.links.map(l => ({ source: (l.source && l.source.id) || l.source, target: (l.target && l.target.id) || l.target })) });
+        try { G.d3ReheatSimulation(); } catch (e) {}
+      }
+    },
+
+    // Split a report into the leading summary block and the rest (from the
+    // first detail header onward), so the graph can sit between them.
+    _splitReport(text) {
+      // Preferred: split at the 2nd markdown header so the graph sits between the
+      // INTELLIGENCE SUMMARY and the detail sections (summary -> graph -> detail).
+      const re = /(^|\n)#{1,3}\s+/g;
+      let m, count = 0, secondIdx = -1;
+      while ((m = re.exec(text)) !== null) {
+        count++;
+        if (count === 2) { secondIdx = m.index + m[1].length; break; }
+      }
+      if (secondIdx > 0) {
+        return { summary: text.slice(0, secondIdx).replace(/\n-{3,}\s*$/, '').trim(),
+                 rest: text.slice(secondIdx).trim() };
+      }
+      // Fallback: report lacks a 2nd header (less-structured output). Keep the opening
+      // paragraph as the summary and push the remainder below the graph, so the graph is
+      // never stranded at the very bottom when there is still detail to follow.
+      const para = text.indexOf('\n\n');
+      if (para > 0 && para < text.trim().length - 2) {
+        return { summary: text.slice(0, para).trim(), rest: text.slice(para).trim() };
+      }
+      return { summary: text.trim(), rest: '' };
+    },
+
+    _graphTip(n) {
+      const bits = [n.type || 'ENTITY'];
+      if (n.value && n.value !== n.label) bits.push(n.value);
+      if (n.source) bits.push(n.source);
+      if (n.confidence) bits.push(n.confidence);
+      if (n.severity) bits.push(n.severity.toUpperCase());
+      return bits.join(' · ');
+    },
+
+    // Render the evidence graph as an interactive 3D force-directed graph, styled after
+    // AlexW00/obsidian-3d-graph: a cloud of small UNIFORM muted-grey spheres with thin links.
+    // On hover the focused node, its neighbours and their links recolour to a bright "accent"
+    // (CLEARFRONT uses a monochrome pop, not a hue) while everything else stays muted (no
+    // dimming) and the focused links gain slow travelling particles. Drag to rotate, scroll to
+    // zoom, click a node for its detail panel.
+    initEvidenceGraph(el, part) {
+      const graph = part && part.graph;
+      if (!el || !graph || !graph.nodes) return;
+      if (!window.ForceGraph3D) { setTimeout(() => this.initEvidenceGraph(el, part), 100); return; }
+      if (el._fg) return;  // already mounted
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pal = this._graphPalette();   // mutable; re-skinned on theme toggle
+      const SEV = { risk: '#f85149', watch: '#d29922' };
+      this._sizeGraphNodes(graph);
+      const N = graph.nodes.length;
+      // Hover-highlight state. These sets hold the focused node, its neighbours and their links;
+      // the colour/width/particle accessors below read them so a hover re-emphasises the picture.
+      const hl = { nodes: new Set(), links: new Set(), hover: null };
+      // At rest: severity nodes keep their data colour, the subject is a touch brighter, all
+      // else is one uniform muted grey (the AlexW00 look). Candidates are NOT a separate colour.
+      const baseColor = n => n.severity ? SEV[n.severity]
+        : (n.type === 'SUBJECT' ? pal.subj : pal.node);
+      const nodeColor = n => {
+        if (hl.nodes.size && hl.nodes.has(n) && !n.severity) return pal.hi;  // focus pops bright
+        return baseColor(n);                                                  // others stay muted
+      };
+      const G = window.ForceGraph3D({ controlType: 'orbit' })(el)
+        .width(el.clientWidth).height(el.clientHeight || 380)
+        .backgroundColor(pal.bg)
+        .showNavInfo(false)   // hide the library's default control overlay; we show a styled hint
+        .graphData({ nodes: graph.nodes, links: (graph.links || []).map(l => Object.assign({}, l)) })
+        .nodeRelSize(3.5)
+        .nodeVal(n => n.val)
+        .nodeColor(nodeColor)
+        .nodeOpacity(0.95)
+        .nodeResolution(16)
+        .nodeLabel(n => this._graphTip(n))
+        .linkColor(l => hl.links.has(l) ? pal.linkhi : pal.link)
+        .linkWidth(l => hl.links.has(l) ? 1.4 : 0.5)
+        .linkDirectionalParticles(l => (reduce ? 0 : (hl.links.has(l) ? 2 : 0)))
+        .linkDirectionalParticleSpeed(0.004)
+        .linkDirectionalParticleWidth(1.8)
+        .linkDirectionalParticleColor(() => pal.part);
+      // Roughly spherical but ORGANIC: a gentle radial force keeps the cloud round without
+      // forcing a hollow shell, so it reads like AlexW00's natural 3D blob rather than a globe.
+      const R = 24 * Math.cbrt(Math.max(8, N)) + 22;
+      try { G.d3Force('charge').strength(-48); } catch (e) {}
+      try { G.d3Force('link').distance(26).strength(0.3); } catch (e) {}
+      try { G.d3Force('radial', this._sphereForce(R, 0.14)); } catch (e) {}
+      // Frame the sphere once it settles (the camera does not auto-follow the expanding layout).
+      let fitted = false;
+      G.onEngineStop(() => { if (!fitted) { fitted = true; try { G.zoomToFit(700, 55); } catch (e) {} } });
+      // Gentle auto-rotation (orbit) that stops the moment the user interacts. Frozen under
+      // prefers-reduced-motion.
+      if (!reduce) {
+        try { const c = G.controls(); c.autoRotate = true; c.autoRotateSpeed = 0.55; } catch (e) {}
+        const stop = () => { try { G.controls().autoRotate = false; } catch (e) {} };
+        el.addEventListener('pointerdown', stop, { once: true });
+        el.addEventListener('wheel', stop, { once: true, passive: true });
+      }
+      const refresh = () => { try { G.nodeColor(G.nodeColor()).linkColor(G.linkColor()).linkWidth(G.linkWidth()).linkDirectionalParticles(G.linkDirectionalParticles()); } catch (e) {} };
+      G.onNodeHover(n => {
+        el.style.cursor = n ? 'pointer' : 'default';
+        hl.nodes.clear(); hl.links.clear(); hl.hover = n || null;
+        if (n) {
+          hl.nodes.add(n);
+          (G.graphData().links || []).forEach(l => {
+            const s = (l.source && l.source.id) ? l.source : null;
+            const t = (l.target && l.target.id) ? l.target : null;
+            const sid = s ? s.id : l.source, tid = t ? t.id : l.target;
+            if (sid === n.id || tid === n.id) { hl.links.add(l); if (s) hl.nodes.add(s); if (t) hl.nodes.add(t); }
+          });
+        }
+        refresh();
+      });
+      G.onNodeClick(n => {
+        const nb = [];
+        (part.graph.links || []).forEach(l => {
+          const s = (l.source && l.source.id) ? l.source.id : l.source;
+          const t = (l.target && l.target.id) ? l.target.id : l.target;
+          if (s === n.id) nb.push(t); else if (t === n.id) nb.push(s);
+        });
+        const labels = nb.map(id => { const m = part.graph.nodes.find(x => x.id === id); return m ? m.label : id; });
+        part.graphSel = { id: n.id, label: n.label, type: n.type, value: n.value,
+                          source: n.source, confidence: n.confidence, severity: n.severity, neighbors: labels };
+        // Fly the camera toward the clicked node for a focused look.
+        try {
+          const d = 90, r = 1 + d / Math.max(1, Math.hypot(n.x || 0, n.y || 0, n.z || 0));
+          G.cameraPosition({ x: (n.x || 0) * r, y: (n.y || 0) * r, z: (n.z || 0) * r }, n, 700);
+          G.controls().autoRotate = false;
+        } catch (e) {}
+      });
+      el._fg = G;
+      G._pal = pal;
+    },
+
+    // Radial force: nudge each node toward a sphere of the given radius (3D shell), so the
+    // graph relaxes into a ball. Written inline so no external d3-force module is needed.
+    _sphereForce(radius, strength) {
+      let nodes = [];
+      const force = (alpha) => {
+        for (let i = 0; i < nodes.length; i++) {
+          const n = nodes[i];
+          const x = n.x || 0, y = n.y || 0, z = n.z || 0;
+          const r = Math.sqrt(x * x + y * y + z * z) || 1e-6;
+          const k = (radius - r) / r * strength * alpha;
+          n.vx += x * k; n.vy += y * k; n.vz += z * k;
+        }
+      };
+      force.initialize = (n) => { nodes = n; };
+      return force;
+    },
+
+    // Expand the inline graph panel to a near-fullscreen modal (and back). Same WebGL
+    // instance, just repositioned via CSS, so there is no second context to allocate.
+    toggleGraphExpand(part) {
+      if (!part || part.type !== 'graph') return;
+      part._expanded = !part._expanded;
+      // Resize the renderer to the new container box once the CSS has settled, then re-frame
+      // the sphere so it fills the larger (or smaller) viewport.
+      this.$nextTick(() => this._resizeGraph(part));
+      [80, 380].forEach(ms => setTimeout(() => this._resizeGraph(part, ms === 380), ms));
+    },
+
+    _resizeGraph(part, refit) {
+      const el = document.querySelector('[data-cf-gid="' + part.gid + '"]');
+      const G = el && el._fg;
+      if (G && el && el.clientWidth) {
+        try { G.width(el.clientWidth).height(el.clientHeight || 380); } catch (e) {}
+        if (refit) { try { G.zoomToFit(500, 55); } catch (e) {} }
+      }
+    },
+
+    // Pivot (stage 4): run more tools on the clicked entity, expanding the picture.
+    pivotEntity(holder, sel) {
+      if (!sel || this.isStreaming) return;
+      holder.graphSel = null;
+      this._pivotInto = holder;   // grow this graph in place rather than spawn a new one
+      const what = (sel.value || sel.label || '').trim();
+      const kind = (sel.type || 'entity').toLowerCase();
+      this.input = 'Pivot the investigation onto this ' + kind + ': ' + what +
+                   '. Run the relevant tools, then report what is newly found and how it connects to the ' +
+                   'existing entities. Do not emit a graph block yourself; the evidence graph is generated automatically.';
+      this.sendMessage();
+    },
+
+    // UI helpers
+    clearConversation() { this.messages = []; this.chatHistory = []; },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const el = document.getElementById('chat-area');
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    },
+
+    autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+    },
+
+    copyText(text) { navigator.clipboard.writeText(text || '').catch(() => {}); },
+
+    // Compact UTC stamp for report file names, e.g. 20260702-1430.
+    _reportStampCompact(msg) {
+      const d = (msg && msg.ts) ? new Date(msg.ts) : new Date();
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}-${p(d.getUTCHours())}${p(d.getUTCMinutes())}`;
+    },
+    _triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      a.remove(); URL.revokeObjectURL(url);
+    },
+    // Export the intelligence report: Markdown is a client-side download; PDF is
+    // rendered by the server via the same pdf_report path the REPL/CLI use. On any
+    // failure (e.g. reportlab not installed) fall back to copying the report.
+    async downloadReport(part, msg, fmt) {
+      const content = part && part.content ? part.content.trim() : '';
+      if (!content) return;
+      const base = 'clearfront-report-' + this._reportStampCompact(msg);
+      if (fmt === 'md') {
+        this._triggerDownload(new Blob([content], { type: 'text/markdown' }), base + '.md');
+        return;
+      }
+      try {
+        const resp = await fetch('/api/report/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markdown: content, title: base }),
+        });
+        if (!resp.ok) { this.copyText(content); return; }
+        this._triggerDownload(await resp.blob(), base + '.pdf');
+      } catch (e) {
+        this.copyText(content);
+      }
+    },
+
+    // Export the evidence graph the user is looking at. JSON is a client-side download;
+    // GraphML and Mermaid are formatted by the server (the same correlation.py exporters
+    // the CLI uses). We strip the force-graph library's in-place layout fields (x/y/z, vx…)
+    // and normalize link endpoints back to plain ids so the artifact is clean and stable.
+    async downloadGraph(part, msg, fmt) {
+      const graph = part && part.graph;
+      if (!graph || !graph.nodes || !graph.nodes.length) return;
+      const clean = {
+        nodes: graph.nodes.map(n => ({
+          id: n.id, label: n.label, type: n.type, value: n.value,
+          source: n.source, confidence: n.confidence, severity: n.severity,
+        })),
+        links: (graph.links || []).map(l => ({
+          source: (l.source && l.source.id) || l.source,
+          target: (l.target && l.target.id) || l.target,
+        })),
+      };
+      const base = 'clearfront-graph-' + this._reportStampCompact(msg);
+      if (fmt === 'json') {
+        this._triggerDownload(new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' }), base + '.json');
+        return;
+      }
+      try {
+        const resp = await fetch('/api/graph/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ graph: clean, format: fmt, title: base }),
+        });
+        if (!resp.ok) { this.copyText(JSON.stringify(clean, null, 2)); return; }
+        const ext = fmt === 'mermaid' ? 'mmd' : 'graphml';
+        this._triggerDownload(await resp.blob(), base + '.' + ext);
+      } catch (e) {
+        this.copyText(JSON.stringify(clean, null, 2));
+      }
+    },
+
+    lineClass(text) {
+      if (!text) return 'text-muted';
+      if (text.startsWith('[+]'))                                         return 'text-accent';
+      if (text.startsWith('[-]') || text.startsWith('Scan error:') ||
+          text.startsWith('Error:') || text.startsWith('Internal error:')) return 'text-error';
+      if (text.startsWith('[!]') || text.includes('FLAGGED'))             return 'text-warning';
+      if (text.startsWith('[RISK]'))                                      return 'text-error';
+      if (text.startsWith('[WATCH]'))                                     return 'text-warning';
+      if (text.startsWith('[INFO]'))                                      return 'text-secondary';
+      if (text.startsWith('[*]') || text.startsWith('[Censys]') ||
+          text.startsWith('[Shodan]') || text.startsWith('[VirusTotal]') ||
+          text.startsWith('[IP2Location]'))                                return 'text-secondary';
+      return 'text-muted';
+    },
+
+    // Parse a search_exposure result into a scannable verdict (RISK / WATCH / CLEAR).
+    // Returns null for any output that is not an exposure report, so the band only
+    // renders for exposure cards. Counts come from the tool's own summary line.
+    exposureVerdict(output) {
+      if (!output) return null;
+      const m = String(output).match(/(\d+)\s+risk\(s\),\s+(\d+)\s+item\(s\)\s+to\s+watch\./i);
+      if (!m) return null;
+      const risks = parseInt(m[1], 10), watches = parseInt(m[2], 10);
+      const ipm = String(output).match(/Exposure report for (\S+)/i);
+      const ip = ipm ? ipm[1] : '';
+      if (risks > 0) {
+        const w = watches ? ', ' + watches + (watches === 1 ? ' watchpoint' : ' watchpoints') : '';
+        return { level: 'risk', label: 'AT RISK', summary: risks + (risks === 1 ? ' risk' : ' risks') + w, ip };
+      }
+      if (watches > 0) {
+        return { level: 'watch', label: 'WATCH', summary: watches + (watches === 1 ? ' watchpoint' : ' watchpoints') + ', no risks', ip };
+      }
+      return { level: 'ok', label: 'CLEAR', summary: 'No risks or watchpoints', ip };
+    },
+
+    // Pull "lat,lng" coordinates out of an IP/exposure result, if present.
+    // Matches ipinfo's "Loc: 53.45,-2.73" line; ignores anything else.
+    extractCoords(text) {
+      if (!text) return null;
+      const m = String(text).match(/Loc(?:ation)?\s*[:=]\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/i);
+      if (!m) return null;
+      const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+      return lat + ',' + lng;
+    },
+
+    // Google Maps Embed API (place mode = drops a pin), satellite imagery.
+    mapEmbedUrl(coords) {
+      if (!coords || !this.googleMapsKey) return '';
+      const q = encodeURIComponent(coords);
+      return 'https://www.google.com/maps/embed/v1/place?key=' + this.googleMapsKey +
+             '&q=' + q + '&zoom=14&maptype=satellite';
+    },
+
+    // Open the same spot full-screen in Google Maps (no key needed).
+    mapLinkUrl(coords) {
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(coords);
+    },
+
+    // ── Browser IP leak test (client-side: WebRTC + IPv6) ──────────────────
+    openLeakTest() {
+      this.showLeakTest = true;
+      if (!this.leak.ran && !this.leak.running) this.runLeakTest();
+    },
+
+    badgeClass(level) {
+      return { risk: 'text-error', watch: 'text-warning', ok: 'text-accent', info: 'text-muted' }[level] || 'text-muted';
+    },
+
+    isPrivateIp(ip) {
+      if (!ip) return true;
+      if (ip.endsWith('.local')) return true;
+      if (ip.includes(':')) {
+        const l = ip.toLowerCase();
+        return l === '::1' || l.startsWith('fe80') || l.startsWith('fc') || l.startsWith('fd');
+      }
+      const p = ip.split('.').map(Number);
+      if (p[0] === 10) return true;
+      if (p[0] === 192 && p[1] === 168) return true;
+      if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
+      if (p[0] === 169 && p[1] === 254) return true;
+      if (p[0] === 127) return true;
+      return false;
+    },
+
+    async _fetchText(url, timeoutMs) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+        clearTimeout(t);
+        if (!r.ok) return null;
+        return (await r.text()).trim();
+      } catch { clearTimeout(t); return null; }
+    },
+
+    _webrtcGather(timeoutMs) {
+      return new Promise((resolve) => {
+        const ips = new Set();
+        let pc;
+        try {
+          pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        } catch { resolve([]); return; }
+        try { pc.createDataChannel('x'); } catch {}
+        pc.onicecandidate = (e) => {
+          if (!e || !e.candidate) return;
+          const c = e.candidate;
+          let ip = c.address || null;
+          if (!ip && c.candidate) {
+            const m = c.candidate.match(/(?:\d{1,3}\.){3}\d{1,3}|[a-z0-9-]+\.local|(?:[a-f0-9]{1,4}:){2,}[a-f0-9]{0,4}/i);
+            ip = m ? m[0] : null;
+          }
+          if (ip) ips.add(ip);
+        };
+        pc.createOffer().then(o => pc.setLocalDescription(o)).catch(() => {});
+        setTimeout(() => { try { pc.close(); } catch {} resolve([...ips]); }, timeoutMs);
+      });
+    },
+
+    async runLeakTest() {
+      this.leak.running = true;
+      this.leak.webrtcPublic = [];
+      this.leak.webrtcLocal = [];
+      this.leak.httpIp = null;
+
+      // HTTP exit IP (what sites normally see) + IPv6 reachability, in parallel.
+      const [httpIp, ipv6Addr, rtc] = await Promise.all([
+        this._fetchText('https://api.ipify.org', 6000),
+        this._fetchText('https://api6.ipify.org', 6000),
+        this._webrtcGather(4500),
+      ]);
+      this.leak.httpIp = httpIp;
+
+      for (const ip of rtc) {
+        if (this.isPrivateIp(ip)) this.leak.webrtcLocal.push(ip);
+        else this.leak.webrtcPublic.push(ip);
+      }
+
+      // WebRTC verdict
+      const leaked = this.leak.webrtcPublic.filter((ip) => ip !== httpIp);
+      if (leaked.length) {
+        this.leak.webrtc = { level: 'risk', text: 'WebRTC exposes a public IP different from your exit IP, likely your real IP leaking past a VPN/proxy. Disable WebRTC or use a VPN/extension that blocks it.' };
+      } else if (this.leak.webrtcPublic.length) {
+        this.leak.webrtc = { level: 'info', text: 'WebRTC exposes your public IP, and it matches your exit IP. Normal when not on a VPN; on a VPN this means no extra leak beyond the exit IP.' };
+      } else if (this.leak.webrtcLocal.length) {
+        this.leak.webrtc = { level: 'ok', text: 'Only local/.local addresses seen, your browser is masking local IPs (mDNS). No public WebRTC leak.' };
+      } else {
+        this.leak.webrtc = { level: 'ok', text: 'No IP addresses exposed via WebRTC.' };
+      }
+
+      // IPv6 verdict
+      if (ipv6Addr && ipv6Addr.includes(':')) {
+        this.leak.ipv6 = { level: 'watch', text: 'IPv6 is reachable (' + ipv6Addr + '). If your VPN only tunnels IPv4, your IPv6 traffic can bypass the tunnel and reveal you. Use a VPN with IPv6 support or disable IPv6.' };
+      } else {
+        this.leak.ipv6 = { level: 'ok', text: 'No IPv6 connectivity detected, nothing can leak over IPv6.' };
+      }
+
+      this.leak.running = false;
+      this.leak.ran = true;
+    },
+
+    renderMarkdown(text) {
+      if (!text) return '';
+      // never render the evidence-graph data block (it becomes the graph, not report text)
+      text = text.replace(/```graph[\s\S]*$/, '').trimEnd();
+      if (!text) return '';
+      const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const inline = s => esc(s)
+        .replace(/`([^`\n]+)`/g,        '<code>$1</code>')
+        .replace(/\*\*([^*\n]+)\*\*/g,  '<strong>$1</strong>')
+        .replace(/\*([^*\n]+)\*/g,      '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/(^|[\s(])((?:https?:\/\/)[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+
+      const lines = text.replace(/\r/g, '').split('\n');
+      const out = [];
+      let list = null, para = [], code = null;
+      const flushPara = () => { if (para.length) { out.push('<p>' + para.map(inline).join('<br>') + '</p>'); para = []; } };
+      const closeList = () => { if (list) { out.push('</' + list + '>'); list = null; } };
+
+      for (const ln of lines) {
+        if (code !== null) {
+          if (/^```/.test(ln)) { out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); code = null; }
+          else code.push(ln);
+          continue;
+        }
+        if (/^```/.test(ln)) { flushPara(); closeList(); code = []; continue; }
+        if (/^\s*$/.test(ln)) { flushPara(); continue; }   // blank line: end paragraph, keep any open list
+        let m;
+        if ((m = ln.match(/^(#{1,3})\s+(.+)$/))) {
+          flushPara(); closeList();
+          out.push('<h' + m[1].length + '>' + inline(m[2]) + '</h' + m[1].length + '>');
+        } else if ((m = ln.match(/^[*\-]\s+(.+)$/))) {
+          flushPara();
+          if (list !== 'ul') { closeList(); out.push('<ul>'); list = 'ul'; }
+          out.push('<li>' + inline(m[1]) + '</li>');
+        } else if ((m = ln.match(/^\d+\.\s+(.+)$/))) {
+          flushPara();
+          if (list !== 'ol') { closeList(); out.push('<ol>'); list = 'ol'; }
+          out.push('<li>' + inline(m[1]) + '</li>');
+        } else {
+          closeList(); para.push(ln);
+        }
+      }
+      flushPara(); closeList();
+      return out.join('');
+    },
+
+    // API key save
+    async saveApiKeys() {
+      this.setupMsg = '';
+      const body = {};
+      for (const k of this.apiKeys) {
+        const v = (this.setupData[k.key] || '').trim();
+        if (v) body[k.key] = v;
+      }
+      if (!Object.keys(body).length) {
+        this.setupOk = false; this.setupMsg = 'Enter at least one key.'; return;
+      }
+      try {
+        const r = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) throw new Error('Save failed');
+        this.setupData = {};
+        this.setupOk = true; this.setupMsg = 'Saved';
+        await this.fetchHealth();
+        setTimeout(() => { this.setupMsg = ''; }, 3000);
+      } catch (e) {
+        this.setupOk = false; this.setupMsg = e.message || 'Failed to save.';
+      }
+    },
+
+    // Ollama test
+    async testOllama() {
+      this.ollamaTestResult = 'Testing...';
+      this.ollamaTestOk = false;
+      try {
+        const r = await fetch(this.settings.ollamaHost.replace(/\/$/, '') + '/api/tags', {
+          signal: AbortSignal.timeout(3000),
+        });
+        if (r.ok) { this.ollamaTestOk = true; this.ollamaTestResult = 'Connected'; }
+        else        { this.ollamaTestResult = `HTTP ${r.status}`; }
+      } catch (e) {
+        this.ollamaTestResult = e.message;
+      }
+    },
+
+    async testOpenai() {
+      this.openaiTestResult = 'Testing...';
+      this.openaiTestOk = false;
+      // Probe through the server: the browser cannot reach an http:// endpoint
+      // from an https:// page (mixed-content) and cross-origin requests fail
+      // CORS. The server has no such restriction. Blank fields fall back to the
+      // server's configured OPENAI_BASE_URL / OPENAI_API_KEY.
+      try {
+        const r = await fetch('/api/openai/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            openai_base_url: this.settings.openaiBaseUrl,
+            openai_api_key: this.settings.openaiApiKey,
+          }),
+          signal: AbortSignal.timeout(6000),
+        });
+        const d = await r.json();
+        if (!d.reachable) {
+          this.openaiTestResult = 'Unreachable, check Base URL / that the endpoint is running';
+        } else if (d.auth_ok) {
+          this.openaiTestOk = true; this.openaiTestResult = 'Connected';
+        } else {
+          // Endpoint is up but rejected the key, the most common real-world case.
+          this.openaiTestResult = `Endpoint reachable but key rejected (HTTP ${d.status_code}). Check API key.`;
+        }
+      } catch (e) {
+        this.openaiTestResult = e.message;
+      }
+    },
+
+    async saveOpenai() {
+      this.openaiTestResult = 'Saving...';
+      this.openaiTestOk = false;
+      // Persist to localStorage (per-request payload) AND to the server .env so
+      // the configuration survives reloads and is used as the env default.
+      this.settings.chatModel = 'openai';
+      this.saveLocalSettings();
+      const body = {};
+      if ((this.settings.openaiBaseUrl || '').trim()) body.OPENAI_BASE_URL = this.settings.openaiBaseUrl.trim();
+      if ((this.settings.openaiModel   || '').trim()) body.OPENAI_MODEL    = this.settings.openaiModel.trim();
+      if ((this.settings.openaiApiKey  || '').trim()) body.OPENAI_API_KEY  = this.settings.openaiApiKey.trim();
+      if (!Object.keys(body).length) {
+        this.openaiTestResult = 'Enter a Base URL first.';
+        return;
+      }
+      try {
+        const r = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) throw new Error('Save failed');
+        this.openaiTestOk = true; this.openaiTestResult = 'Saved';
+        await this.fetchHealth();
+        setTimeout(() => { if (this.openaiTestResult === 'Saved') this.openaiTestResult = ''; }, 3000);
+      } catch (e) {
+        this.openaiTestResult = e.message || 'Failed to save.';
+      }
+    },
+  }));
+});
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/3d-force-graph@1/dist/3d-force-graph.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+</body>
+</html>

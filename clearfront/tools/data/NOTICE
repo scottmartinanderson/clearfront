@@ -1,0 +1,16 @@
+wmn-data-unique.json
+=====================
+
+This file is a filtered adaptation of the WhatsMyName project's site list,
+restricted to the services not already covered by maigret, for use by
+CLEARFRONT's search_username tool.
+
+Source:      WhatsMyName  (https://github.com/WebBreacher/WhatsMyName)
+Copyright:   (C) Micah Hoffman
+License:     Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+             https://creativecommons.org/licenses/by-sa/4.0/
+
+This data file (and any adaptation of it, including the filtered subset above)
+remains licensed under CC BY-SA 4.0. It is bundled here with attribution under
+that license. The rest of CLEARFRONT's source code is licensed separately (see
+the repository LICENSE) and is not a derivative of this data.

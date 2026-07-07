@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/scottmartinanderson/clearfront/security/advisories/new
+    about: >
+      Report a security vulnerability privately. Please do not open a public issue
+      for security problems.
+  - name: Questions and discussion
+    url: https://github.com/scottmartinanderson/clearfront/discussions
+    about: >
+      Questions, ideas, and community discussion that do not require a formal bug
+      report or feature request.

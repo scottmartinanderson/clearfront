@@ -1,0 +1,124 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clearfront"
+version = "2.5.0"
+description = "AI-powered OSINT agent, MCP server, and CLI. Interactive REPL + 30 tools. Anthropic Claude or local Ollama. For authorized security research use only."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    {name = "Scott Martin Anderson"}
+]
+keywords = [
+    "osint", "security", "mcp", "cli", "ai", "agent",
+    "anthropic", "claude", "investigation", "recon", "cybersecurity"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Topic :: Security",
+    "Topic :: Internet",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "anthropic>=0.40.0",
+    "requests>=2.31.0",
+    "python-whois>=0.9.0",
+    "rich>=13.0.0",
+    "prompt_toolkit>=3.0.0",
+    "python-dotenv>=1.0.0",
+    "aiohttp>=3.9.0",
+    "dnspython>=2.6.0",
+    "ddgs>=9.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "httpx>=0.27.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/scottmartinanderson/clearfront"
+Repository = "https://github.com/scottmartinanderson/clearfront"
+"Bug Tracker" = "https://github.com/scottmartinanderson/clearfront/issues"
+
+[project.scripts]
+clearfront = "clearfront.cli:main"
+clearfront-mcp = "clearfront.mcp_server:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=7.1.0",
+    "pytest-freezegun>=0.4.2",
+    "ruff>=0.1.0",
+]
+shodan = [
+    "shodan>=1.31.0",
+]
+ollama = [
+    "ollama>=0.3.0",
+]
+openai = [
+    "openai>=1.40.0",
+]
+pdf = [
+    "reportlab>=4.0.0",
+]
+censys = [
+    "censys-platform>=0.14.0",
+]
+web = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "sse-starlette>=1.8.0",
+    "python-dotenv>=1.0.0",
+    "anthropic>=0.25.0",
+    "playwright>=1.40.0",
+]
+all = [
+    "shodan>=1.31.0",
+    "ollama>=0.3.0",
+    "openai>=1.40.0",
+    "reportlab>=4.0.0",
+    "censys-platform>=0.14.0",
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "sse-starlette>=1.8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["clearfront*"]
+exclude = ["assets*", "docs*", "scripts*", "tests*"]
+
+[tool.setuptools.package-data]
+clearfront = ["web/*.html", "web/**/*", "tools/data/*.json", "tools/data/NOTICE"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "clearfront.web_server"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

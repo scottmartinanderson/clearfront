@@ -1,0 +1,9 @@
+services:
+  clearfront:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file: .env
+    volumes:
+      - ./reports:/app/reports
+      - ./.env:/app/.env

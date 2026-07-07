@@ -1,0 +1,72 @@
+name: New Integration Request
+description: Request to add a new OSINT tool or external API to Clearfront.
+title: "[Integration]: "
+labels: ["integration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to propose adding a new data source, external API, or command-line
+        tool to Clearfront.
+
+  - type: input
+    id: name
+    attributes:
+      label: API / tool name
+      placeholder: "e.g. SecurityTrails"
+    validations:
+      required: true
+
+  - type: input
+    id: docs
+    attributes:
+      label: Link to documentation
+      placeholder: "https://..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - email
+        - username / social media
+        - IP / geolocation / threat intelligence
+        - domain / subdomain
+        - breach / credential
+        - phone
+        - DNS
+        - code / repository
+        - paste / leak
+        - other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: pricing
+    attributes:
+      label: Free or paid?
+      options:
+        - Free (no API key required)
+        - Free tier available (API key required)
+        - Paid only
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Why is this integration valuable?
+      description: >
+        What data does it return that is not already covered by existing tools?
+        Include a sample result if possible.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to submit a pull request to implement this integration.

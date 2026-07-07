@@ -1,0 +1,60 @@
+# Clearfront
+> MCP-native Open Source Intelligence framework for AI agents. Autonomous OSINT investigations from your terminal.
+
+## Overview
+Clearfront is a modular OSINT framework that exposes intelligence-gathering tools to large language models via the Model Context Protocol (MCP). It also operates as a standalone CLI for direct human use. No LLM is embedded, Clearfront provides the tool surface that an MCP-compatible client (e.g. Claude Code) drives autonomously.
+
+## Installation
+- Source: `git clone https://github.com/scottmartinanderson/clearfront && pip install -e .`
+- Python 3.10+ required
+
+## Claude Code MCP setup
+`claude mcp add clearfront python /absolute/path/to/clearfront/mcp_server.py`
+
+## Available MCP tools
+- `search_email`, online services registered against an email address (via holehe)
+- `search_username`, username across sherlock plus a WhatsMyName subset, each hit verified
+- `search_maigret`, broad username discovery across 3,000+ sites (via maigret)
+- `search_footprint`, name/username discovery via search-engine results
+- `search_breach`, email in known data breaches (HaveIBeenPwned, requires HIBP_API_KEY)
+- `search_paste`, paste-site mentions of an email or username
+- `search_gravatar`, public Gravatar profile for an email (avatar, name, linked accounts)
+- `search_emailrep`, email reputation/footprint summary (EmailRep.io, requires EMAILREP_API_KEY)
+- `search_hudsonrock`, infostealer-exposure check for an email or username (Hudson Rock free tier: exposure yes/no plus infection metadata, no plaintext credentials; authorized-use only)
+- `search_ip`, geolocation, ASN, hostname for an IP address (via ipinfo.io)
+- `search_exposure`, risk-ranked exposure report for an IP (self-lookup supported)
+- `search_whois`, WHOIS registration data for a domain
+- `search_domain`, subdomain enumeration for a domain (via sublist3r)
+- `search_crt`, subdomain discovery from certificate transparency logs (crt.sh, keyless, passive)
+- `search_wayback`, historical/archived URLs for a domain (Wayback Machine, keyless, passive)
+- `search_harvester`, passive domain recon: emails, people, subdomains (via theHarvester)
+- `search_dns`, DNS records for a domain
+- `search_ip2location`, enhanced IP geolocation + VPN/proxy/Tor detection (requires IP2LOCATION_API_KEY)
+- `search_abuseipdb`, IP abuse reputation (requires ABUSEIPDB_API_KEY)
+- `search_greynoise`, mass-scanner noise vs. targeted actor for an IP (GreyNoise Community; GREYNOISE_API_KEY optional)
+- `search_shodan`, Shodan host lookup (requires SHODAN_API_KEY)
+- `search_censys`, Censys host data (requires CENSYS_PAT / CENSYS_SECRET)
+- `search_virustotal`, VirusTotal reputation (requires VIRUSTOTAL_API_KEY)
+- `search_github`, GitHub user/repo intelligence
+- `search_phone`, carrier, country, and line type for a phone number (via phoneinfoga)
+- `search_exif`, EXIF/GPS metadata from a local file (via exiftool)
+- `search_crypto`, on-chain summary for a BTC/ETH address (balance, transaction count)
+- `generate_dorks`, targeted Google dork URLs for any target string
+- `search_dorks_live`, run live dork searches and return results
+- `scrape_url`, fetch and extract readable text from a URL
+
+## Optional environment variables
+- `HIBP_API_KEY`, HaveIBeenPwned API key for breach search
+- `IPINFO_TOKEN`, ipinfo.io token for higher rate limits
+- `EMAILREP_API_KEY`, EmailRep.io key for `search_emailrep` (free; approval-gated)
+- `SHODAN_API_KEY`, `VIRUSTOTAL_API_KEY`, `CENSYS_PAT`/`CENSYS_SECRET`, `IP2LOCATION_API_KEY`, `ABUSEIPDB_API_KEY`, `BRIGHTDATA_API_KEY`, for their respective tools
+- `GREYNOISE_API_KEY`, optional for `search_greynoise` (raises the free Community-tier limit; the tool also works unauthenticated)
+
+## External binary dependencies
+holehe, sherlock, maigret, sublist3r, phoneinfoga, exiftool, theHarvester, must be present in PATH
+
+## License
+MIT
+
+## Links
+- GitHub: https://github.com/scottmartinanderson/clearfront
