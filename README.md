@@ -16,10 +16,6 @@
 
 </div>
 
-<div align="center">
-  <img src="media/screenshots/web-console-dark.png" alt="The Clearfront web console: a self-check and investigate launcher over a local AI OSINT agent" width="820">
-</div>
-
 - **30 modular tools**, email, username (sherlock + WhatsMyName), broad username discovery across 3,000+ sites (maigret), search-based footprint discovery, IP, IP self-exposure report, domain, WHOIS, breach, Gravatar profile, EmailRep reputation, phone, paste, EXIF/GPS metadata, Shodan, VirusTotal, Censys, IP2Location, AbuseIPDB, GitHub (profile + public code/secret exposure), DNS, subdomain discovery via certificate transparency (crt.sh), historical URL recovery via the Wayback Machine (Internet Archive), mass-scan visibility (GreyNoise Community), infostealer-exposure check (Hudson Rock, free tier, no plaintext credentials), dork generation, live dork search, URL scraping, BTC/ETH address lookup, and passive domain recon (theHarvester)
 - **MCP server built in**, expose all 30 tools natively to Claude Code, Claude Desktop, and any MCP-compatible client
 - **Three AI backends**, Anthropic Claude (default), local Ollama, or any OpenAI-compatible endpoint; tool results come from real subprocess calls, never hallucinated
