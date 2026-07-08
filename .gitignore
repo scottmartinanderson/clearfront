@@ -126,24 +126,14 @@ logs/
 *.swo
 *~
 
-# Vibe-coded / AI-generated test files
-# test_coverage_boost.py exists solely to pad coverage metrics to 80%, not real tests
-tests/test_coverage_boost.py
-
 # Auto-generated coverage data
-# Produced by pytest-cov / coverage.py, not source, not config
 coverage.json
 
 # OSINT tool output artifacts dumped to repo root
-# These are runtime results from manual tool runs, not source files
 researcher*.txt
 testuser*.txt
 *.osint.txt
 reports/
-
-# Empty placeholder files
-# clearfront/index.html.txt is 0 bytes, accidentally created stub
-clearfront/index.html.txt
 
 # Landing page is a standalone repo, not part of this tool repo
 /site/
