@@ -14,10 +14,10 @@ Examples
 --------
   python scripts/ascii_art.py symbol orb --width 70
   python scripts/ascii_art.py symbol globe --width 60
-  python scripts/ascii_art.py wordmark "MERIDIAN" --font ansi_shadow
-  python scripts/ascii_art.py lockup "MERIDIAN" --symbol orb --width 64
+  python scripts/ascii_art.py wordmark "CLEARFRONT" --font ansi_shadow
+  python scripts/ascii_art.py lockup "CLEARFRONT" --symbol orb --width 64
   python scripts/ascii_art.py image logo.png --width 100
-  python scripts/ascii_art.py wordmark "MERIDIAN" --html   # ready to paste into index.html
+  python scripts/ascii_art.py wordmark "CLEARFRONT" --html   # ready to paste into index.html
   python scripts/ascii_art.py fonts                         # list good wordmark fonts
 
 Notes

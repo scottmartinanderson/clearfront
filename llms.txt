@@ -33,7 +33,7 @@ Clearfront is a modular OSINT framework that exposes intelligence-gathering tool
 - `search_abuseipdb`, IP abuse reputation (requires ABUSEIPDB_API_KEY)
 - `search_greynoise`, mass-scanner noise vs. targeted actor for an IP (GreyNoise Community; GREYNOISE_API_KEY optional)
 - `search_shodan`, Shodan host lookup (requires SHODAN_API_KEY)
-- `search_censys`, Censys host data (requires CENSYS_PAT / CENSYS_SECRET)
+- `search_censys`, Censys host data (requires CENSYS_PAT / CENSYS_ORG_ID)
 - `search_virustotal`, VirusTotal reputation (requires VIRUSTOTAL_API_KEY)
 - `search_github`, GitHub user/repo intelligence
 - `search_phone`, carrier, country, and line type for a phone number (via phoneinfoga)
@@ -47,7 +47,7 @@ Clearfront is a modular OSINT framework that exposes intelligence-gathering tool
 - `HIBP_API_KEY`, HaveIBeenPwned API key for breach search
 - `IPINFO_TOKEN`, ipinfo.io token for higher rate limits
 - `EMAILREP_API_KEY`, EmailRep.io key for `search_emailrep` (free; approval-gated)
-- `SHODAN_API_KEY`, `VIRUSTOTAL_API_KEY`, `CENSYS_PAT`/`CENSYS_SECRET`, `IP2LOCATION_API_KEY`, `ABUSEIPDB_API_KEY`, `BRIGHTDATA_API_KEY`, for their respective tools
+- `SHODAN_API_KEY`, `VIRUSTOTAL_API_KEY`, `CENSYS_PAT`/`CENSYS_ORG_ID`, `IP2LOCATION_API_KEY`, `ABUSEIPDB_API_KEY`, `BRIGHTDATA_API_KEY`, for their respective tools
 - `GREYNOISE_API_KEY`, optional for `search_greynoise` (raises the free Community-tier limit; the tool also works unauthenticated)
 
 ## External binary dependencies
