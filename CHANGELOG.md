@@ -10,14 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.5.0], 2026-07-02
 
 ### Added
-- **`search_crt`** (27th tool), keyless, passive subdomain discovery from certificate transparency logs (crt.sh). Exposed on the REPL/CLI, MCP, and web console, and routed into the auto-pivot evidence graph for domains.
-- **Footprint-enrichment tools** now reach the terminal agent (tool count 22 -> 27):
+- **`search_crt`**, keyless, passive subdomain discovery from certificate transparency logs (crt.sh). Exposed on the REPL/CLI, MCP, and web console, and routed into the auto-pivot evidence graph for domains.
+- **Footprint-enrichment tools** now reach the terminal agent:
   - `search_gravatar`, public Gravatar profile for an email (avatar, display name, linked/verified accounts).
   - `search_emailrep`, EmailRep.io reputation and footprint summary (keyed: `EMAILREP_API_KEY`, free/approval-gated).
   - `search_crypto`, keyless on-chain summary for a Bitcoin or Ethereum address (balance, transaction count, total received).
   - `search_harvester`, passive organisation/domain recon via theHarvester (emails, people, subdomains; passive sources only).
 - **`search_github` public code/secret search**, reports leaked-secret exposure (repository, path, and secret type only, never the value or the raw file). Requires `GITHUB_TOKEN`.
-- **`search_hudsonrock`** (30th tool), keyless infostealer-exposure check via Hudson Rock's free Cavalier index. For an email or username it reports whether the identifier appears in malware-stolen credential logs plus the defensive infection metadata (count, dates, OS, antivirus, malware file name, affected-service counts). Authorized-use only, and deliberately narrower than the source: it uses only the free (masked) tier, never Hudson Rock's paid API, and never echoes even the masked passwords/logins or identifying machine strings, so it can never surface a working credential. Analyst-invoked, never auto-pivoted.
+- **`search_hudsonrock`**, keyless infostealer-exposure check via Hudson Rock's free Cavalier index. For an email or username it reports whether the identifier appears in malware-stolen credential logs plus the defensive infection metadata (count, dates, OS, antivirus, malware file name, affected-service counts). Authorized-use only, and deliberately narrower than the source: it uses only the free (masked) tier, never Hudson Rock's paid API, and never echoes even the masked passwords/logins or identifying machine strings, so it can never surface a working credential. Analyst-invoked, never auto-pivoted.
 - **Report export in the web console**, copy, Markdown, and PDF download of the intelligence report (`POST /api/report/export`, reusing the existing PDF path).
 - **Evidence-graph export.** New `clearfront graph TARGET` CLI command auto-pivots from a target and writes the entity correlation graph as GraphML/JSON/Mermaid artifacts, and the web console's evidence-graph panel gains `.graphml` / `.json` / `.mmd` download controls (`POST /api/graph/export`). Output is deterministic (sorted nodes and links) so the same graph always exports identically; GraphML opens in Gephi, yEd, and Maltego.
 - `search_username` now also queries a WhatsMyName subset (+231 modern/niche sites maigret/sherlock miss; dataset CC BY-SA 4.0, attributed), merged into its verified results.
