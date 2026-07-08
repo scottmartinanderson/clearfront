@@ -40,7 +40,7 @@ dependencies = [
     "aiohttp>=3.9.0",
     "dnspython>=2.6.0",
     "ddgs>=9.0.0",
-    "fastapi>=0.110.0",
+    "fastapi>=0.139.0",
     "uvicorn[standard]>=0.29.0",
     "httpx>=0.27.0",
 ]
@@ -78,7 +78,7 @@ censys = [
     "censys-platform>=0.14.0",
 ]
 web = [
-    "fastapi>=0.110.0",
+    "fastapi>=0.139.0",
     "uvicorn[standard]>=0.29.0",
     "sse-starlette>=1.8.0",
     "python-dotenv>=1.0.0",
@@ -91,7 +91,7 @@ all = [
     "openai>=1.40.0",
     "reportlab>=4.0.0",
     "censys-platform>=0.14.0",
-    "fastapi>=0.110.0",
+    "fastapi>=0.139.0",
     "uvicorn[standard]>=0.29.0",
     "sse-starlette>=1.8.0",
 ]
