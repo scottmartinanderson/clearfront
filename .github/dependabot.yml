@@ -1,15 +1,19 @@
 version: 2
 updates:
-  # Python dependencies declared in pyproject.toml
+  # Python dependencies declared in pyproject.toml.
+  # Grouped so each week's updates arrive as a single pull request.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
 
-  # GitHub Actions used by the CI workflow
+  # GitHub Actions used by the CI workflow, also grouped into one PR.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -17,3 +21,7 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
