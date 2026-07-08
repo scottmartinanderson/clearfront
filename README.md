@@ -155,14 +155,7 @@ clearfront web
 
 Browser-based AI chat with streaming tool output, inline result cards, and a light/dark theme toggle. Supports fully local inference via Ollama or any OpenAI-compatible endpoint (no Anthropic API key required when using a local backend).
 
-<table>
-  <tr>
-    <td width="50%"><img src="media/screenshots/web-console-light.png" alt="Clearfront web console in light theme, showing the self-check and investigate launcher"></td>
-    <td width="50%"><img src="media/screenshots/web-console-settings.png" alt="Clearfront web console settings: pick Claude, Ollama, or OpenAI and bring your own key"></td>
-  </tr>
-</table>
-
-The console runs entirely on your machine and binds to `127.0.0.1` by default. Choose your backend and paste your own key in Settings; your keys and the targets you investigate never touch our servers. More screenshots are in [`media/screenshots/`](media/screenshots/).
+The console runs entirely on your machine and binds to `127.0.0.1` by default. Choose your backend and paste your own key in Settings; your keys and the targets you investigate never touch our servers. Screenshots are in [`media/screenshots/`](media/screenshots/).
 
 ### MCP Server
 
