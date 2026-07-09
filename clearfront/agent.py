@@ -827,12 +827,26 @@ class OISAgent:
         )
         try:
             while True:
+                # Prompt caching: a breakpoint on the (single) system block caches the
+                # system prompt + all tool definitions together (tools render before
+                # system), so that large stable prefix is re-billed at ~0.1x on every
+                # round instead of full price. Top-level cache_control auto-places a
+                # second breakpoint on the last message block, so the growing tool-output
+                # history is cached incrementally across rounds. Caching changes billing
+                # only; the model sees identical content and produces identical output.
                 response = await self.client.messages.create(
                     model=self.model,
                     max_tokens=_MAX_TOKENS,
-                    system=SYSTEM_PROMPT,
+                    system=[
+                        {
+                            "type": "text",
+                            "text": SYSTEM_PROMPT,
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ],
                     tools=TOOL_DEFINITIONS,  # type: ignore[arg-type]
                     messages=ctx.messages,  # type: ignore[arg-type]
+                    cache_control={"type": "ephemeral"},
                 )
                 if response.stop_reason == "end_turn":
                     text = _extract_first_text(response.content)
