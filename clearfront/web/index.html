@@ -519,10 +519,10 @@
             :title="aiBackend === 'none' ? 'No AI backend configured, click to set up' : 'AI backend, click to change'"
             class="hidden sm:flex items-center gap-2 font-mono text-xs px-2.5 py-1 rounded border border-app text-secondary bg-transparent hover:text-primary hover:border-strong transition-colors cursor-pointer whitespace-nowrap">
       <span class="w-1.5 h-1.5 rounded-full flex-none"
-            :style="aiBackend === 'none' ? 'background-color:var(--red)' : 'background-color:var(--text-muted)'"></span>
-      <span x-show="aiBackend === 'claude'" x-text="claudeModelLabel"></span>
-      <span x-show="aiBackend === 'ollama'">Ollama <span x-text="settings.ollamaModel"></span></span>
-      <span x-show="aiBackend === 'openai'">OpenAI <span x-text="settings.openaiModel || 'model'"></span></span>
+            :style="aiBackend === 'none' ? 'background-color:var(--red)' : 'background-color:var(--accent)'"></span>
+      <span x-show="aiBackend !== 'none' && settings.chatModel === 'claude'" x-text="claudeModelLabel"></span>
+      <span x-show="aiBackend !== 'none' && settings.chatModel === 'ollama'">Ollama <span x-text="settings.ollamaModel || 'model'"></span></span>
+      <span x-show="aiBackend !== 'none' && settings.chatModel === 'openai'">OpenAI <span x-text="settings.openaiModel || 'model'"></span></span>
       <span x-show="aiBackend === 'none'">Not configured</span>
     </button>
     <div class="hidden sm:block w-px h-5 bg-border mx-0.5"></div>
