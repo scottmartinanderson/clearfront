@@ -16,10 +16,6 @@
 
 </div>
 
-<div align="center">
-  <img src="media/screenshots/web-console-dark.png" alt="The Clearfront web console: a self-check and investigate launcher over a local AI OSINT agent" width="820">
-</div>
-
 - **30 modular tools**, email, username (sherlock + WhatsMyName), broad username discovery across 3,000+ sites (maigret), search-based footprint discovery, IP, IP self-exposure report, domain, WHOIS, breach, Gravatar profile, EmailRep reputation, phone, paste, EXIF/GPS metadata, Shodan, VirusTotal, Censys, IP2Location, AbuseIPDB, GitHub (profile + public code/secret exposure), DNS, subdomain discovery via certificate transparency (crt.sh), historical URL recovery via the Wayback Machine (Internet Archive), mass-scan visibility (GreyNoise Community), infostealer-exposure check (Hudson Rock, free tier, no plaintext credentials), dork generation, live dork search, URL scraping, BTC/ETH address lookup, and passive domain recon (theHarvester)
 - **MCP server built in**, expose all 30 tools natively to Claude Code, Claude Desktop, and any MCP-compatible client
 - **Three AI backends**, Anthropic Claude (default), local Ollama, or any OpenAI-compatible endpoint; tool results come from real subprocess calls, never hallucinated
@@ -159,14 +155,7 @@ clearfront web
 
 Browser-based AI chat with streaming tool output, inline result cards, and a light/dark theme toggle. Supports fully local inference via Ollama or any OpenAI-compatible endpoint (no Anthropic API key required when using a local backend).
 
-<table>
-  <tr>
-    <td width="50%"><img src="media/screenshots/web-console-light.png" alt="Clearfront web console in light theme, showing the self-check and investigate launcher"></td>
-    <td width="50%"><img src="media/screenshots/web-console-settings.png" alt="Clearfront web console settings: pick Claude, Ollama, or OpenAI and bring your own key"></td>
-  </tr>
-</table>
-
-The console runs entirely on your machine and binds to `127.0.0.1` by default. Choose your backend and paste your own key in Settings; your keys and the targets you investigate never touch our servers. More screenshots are in [`media/screenshots/`](media/screenshots/).
+The console runs entirely on your machine and binds to `127.0.0.1` by default. Choose your backend and paste your own key in Settings; your keys and the targets you investigate never touch our servers. Screenshots are in [`media/screenshots/`](media/screenshots/).
 
 ### MCP Server
 
