@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0], 2026-07-10
+
+### Added
+- **Sweep effort in the REPL and CLI.** The Faster / Balanced / Deeper control that shipped in the web console now works for the terminal analyst too. Set it with the `--effort` flag (`clearfront --effort faster`) or change it live in the REPL with the `effort` command, which also shows the current level. Each level caps the tool rounds (4 / 8 / 12) and shapes the enrichment instruction so lighter sweeps read deliberate, not truncated. **Deeper stays the default with its behavior unchanged**, and `OIS_MAX_TOOL_ROUNDS` still sets the Deeper ceiling. Applies to all three providers (Anthropic, Ollama, OpenAI-compatible).
+
+### Changed
+- **Renamed the sweep-depth control to "effort"** across the web console (chip tooltip and labels), the REPL, and the CLI (`--effort`, and the `effort` command). The three levels (Faster, Balanced, Deeper) and their descriptions are unchanged. It reads more naturally.
+
 ## [2.6.0], 2026-07-09
 
 ### Added

@@ -84,10 +84,10 @@ SYSTEM_PROMPT = INVESTIGATION_STRATEGY + "\n\n" + ANALYST_CORE
 
 
 # ---------------------------------------------------------------------------
-# Sweep depth (terminal agent): swap the enrichment instruction and, for the
+# Sweep effort (terminal agent): swap the enrichment instruction and, for the
 # lighter levels, prepend a forceful collection-mode line. Deeper is the full
 # default fan-out and returns SYSTEM_PROMPT byte-identical. The round ceiling
-# that pairs with each level lives in clearfront/depth.py.
+# that pairs with each level lives in clearfront/effort.py.
 # ---------------------------------------------------------------------------
 
 # The exact aggressive-enrichment sentence embedded in ANALYST_CORE above. Kept
@@ -137,19 +137,19 @@ AGENT_MODE_LINE = {
 }
 
 
-def system_prompt_for_depth(depth: str) -> str:
-    """Return the terminal agent's system prompt shaped for a sweep depth.
+def system_prompt_for_effort(effort: str) -> str:
+    """Return the terminal agent's system prompt shaped for a sweep effort.
 
     Deeper returns SYSTEM_PROMPT unchanged. Balanced and Faster swap the
     enrichment sentence for the lighter instruction and prepend the matching
     collection-mode line.
     """
-    if depth not in AGENT_ENRICH:
-        depth = "deeper"
+    if effort not in AGENT_ENRICH:
+        effort = "deeper"
     core = SYSTEM_PROMPT
-    if depth != "deeper":
-        core = core.replace(_ENRICH_DEEPER, AGENT_ENRICH[depth])
-    preamble = AGENT_MODE_LINE.get(depth)
+    if effort != "deeper":
+        core = core.replace(_ENRICH_DEEPER, AGENT_ENRICH[effort])
+    preamble = AGENT_MODE_LINE.get(effort)
     return f"{preamble}\n\n{core}" if preamble else core
 
 

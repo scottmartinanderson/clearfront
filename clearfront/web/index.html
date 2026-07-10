@@ -514,13 +514,13 @@
 
   <!-- right: backend status readout + controls -->
   <div class="flex items-center gap-1.5 flex-none">
-    <!-- sweep-depth selector: no-noun chip, opens a level menu whose footer explains the cost -->
+    <!-- effort selector: no-noun chip, opens a level menu whose footer explains the cost -->
     <div class="relative hidden sm:block" @keydown.escape.window="depthOpen = false">
       <button @click="depthOpen = !depthOpen"
               :aria-expanded="depthOpen"
               aria-haspopup="true"
-              aria-label="Sweep depth"
-              title="Sweep depth: how far each investigation reaches. Trades time and API budget, never analyst quality."
+              aria-label="Effort"
+              title="Effort: how far each investigation reaches. Trades time and API budget, never analyst quality."
               class="flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded border border-app text-primary bg-transparent hover:border-strong transition-colors cursor-pointer whitespace-nowrap">
         <span x-text="depthCurrent().name"></span>
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor"
@@ -531,7 +531,7 @@
       <div x-show="depthOpen" x-cloak
            x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
            @click.outside="depthOpen = false" @mouseleave="depthHover = null"
-           role="radiogroup" aria-label="Sweep depth"
+           role="radiogroup" aria-label="Effort"
            class="absolute right-0 mt-2 w-60 p-1.5 rounded-lg border border-app bg-surface z-50"
            style="box-shadow:0 8px 24px rgba(0,0,0,0.28);">
         <template x-for="l in depthLevels" :key="l.v">
@@ -920,7 +920,7 @@ OPEN-SOURCE INTELLIGENCE                                     AUTHORIZED USE · v
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('clearfront', () => ({
-    version: '2.6.0',
+    version: '2.7.0',
     booting: false,
     bootLines: [],
     bootAnim: false,
@@ -955,8 +955,9 @@ document.addEventListener('alpine:init', () => {
     setupData: {},
     isLight: false,
 
-    // Sweep depth: header control for how far each investigation fans out. Trades
+    // Effort: header control for how far each investigation fans out. Trades
     // collection breadth (tool rounds), never analyst quality. Persisted in settings.
+    // Kept as "depth" in the Alpine state + /api/chat payload (internal wire name).
     depthOpen: false,
     depthHover: null,
     depthLevels: [

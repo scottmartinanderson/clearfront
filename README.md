@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/)
 [![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-blueviolet?style=flat-square)](https://modelcontextprotocol.io/)
-[![Version](https://img.shields.io/badge/version-2.6.0-informational?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.7.0-informational?style=flat-square)](CHANGELOG.md)
 
 **[clearfront.sh](https://clearfront.sh)** · [Disclaimer](./DISCLAIMER.md)
 

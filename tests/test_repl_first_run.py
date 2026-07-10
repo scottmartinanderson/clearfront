@@ -52,7 +52,7 @@ def test_first_run_accepts_key(monkeypatch, tmp_path):
     os.environ.pop("ANTHROPIC_API_KEY", None)
     r = OISRepl.__new__(OISRepl)  # avoid PromptSession/FileHistory side effects
     r._api_key = ""
-    r._depth = "deeper"  # __init__ (bypassed here) normally sets this
+    r._effort = "deeper"  # __init__ (bypassed here) normally sets this
     monkeypatch.setattr("builtins.input", lambda *a, **k: "sk-ant-test")
     monkeypatch.setattr(
         OISRepl, "_persist_key_to_env", staticmethod(lambda key, env_path=None: tmp_path / ".env")

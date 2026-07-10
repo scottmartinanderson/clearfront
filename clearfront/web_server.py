@@ -41,7 +41,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from clearfront import depth as _depthmod
+from clearfront import effort as _effort
 from clearfront.brightdata import BRIGHTDATA_LINK_WEB
 from clearfront.corroboration import CorroborationLedger
 from clearfront.utils import is_internal_url
@@ -864,9 +864,11 @@ _DEPTH_MODE_LINE = {
 
 
 # The per-level round ceiling is shared with the terminal agent path; see
-# clearfront/depth.py. The enrichment and mode-line wording above stays here
-# because it is graph-flavoured and specific to the web console.
-_depth_rounds = _depthmod.rounds
+# clearfront/effort.py. The enrichment and mode-line wording above stays here
+# because it is graph-flavoured and specific to the web console. The web keeps
+# "depth" as its internal collection-mode name (ChatRequest.depth, the Alpine
+# chip, the /api/chat field); the user-facing label in index.html is "Effort".
+_depth_rounds = _effort.rounds
 
 
 async def _stream_claude(messages: list[dict], depth: str = "deeper") -> AsyncIterator[dict]:

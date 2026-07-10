@@ -57,8 +57,8 @@ from clearfront.tools.search_wayback import run_wayback_osint
 from clearfront.tools.search_greynoise import run_greynoise_osint
 from clearfront.tools.search_hudsonrock import run_hudsonrock_osint
 from clearfront.pivot import investigate_graph_for_agent
-from clearfront.prompts import system_prompt_for_depth
-from clearfront import depth as _depth
+from clearfront.prompts import system_prompt_for_effort
+from clearfront import effort as _effort
 
 logger = logging.getLogger(__name__)
 
@@ -788,22 +788,22 @@ class OISAgent:
         self,
         api_key: str | None = None,
         model: str = "claude-sonnet-4-20250514",
-        depth: str = _depth.DEFAULT,
+        effort: str = _effort.DEFAULT,
     ) -> None:
         self.client = anthropic.AsyncAnthropic(
             api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         )
         self.model = model
-        self.depth = _depth.normalize(depth)
+        self.effort = _effort.normalize(effort)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
 
-    def set_depth(self, depth: str) -> None:
-        """Set the sweep depth for subsequent investigations."""
-        self.depth = _depth.normalize(depth)
+    def set_effort(self, effort: str) -> None:
+        """Set the sweep effort for subsequent investigations."""
+        self.effort = _effort.normalize(effort)
 
     async def run(
         self,
@@ -832,12 +832,12 @@ class OISAgent:
             tool_calls=[],
             on_tool_call=on_tool_call,
         )
-        # Sweep depth shapes the system prompt (enrichment instruction) and caps
+        # Sweep effort shapes the system prompt (enrichment instruction) and caps
         # the number of tool rounds. When the cap is reached we do not abort; we
         # take one more turn with tools disabled so the model writes its report
         # from the evidence gathered so far.
-        system_text = system_prompt_for_depth(self.depth)
-        max_rounds = _depth.rounds(self.depth)
+        system_text = system_prompt_for_effort(self.effort)
+        max_rounds = _effort.rounds(self.effort)
         tool_rounds = 0
         try:
             while True:
@@ -928,20 +928,20 @@ class OllamaAgent:
         self,
         model: str = "llama3.2",
         host: str = "http://localhost:11434",
-        depth: str = _depth.DEFAULT,
+        effort: str = _effort.DEFAULT,
     ) -> None:
         self.model = model
         self.host = host
-        self.depth = _depth.normalize(depth)
+        self.effort = _effort.normalize(effort)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
 
-    def set_depth(self, depth: str) -> None:
-        """Set the sweep depth for subsequent investigations."""
-        self.depth = _depth.normalize(depth)
+    def set_effort(self, effort: str) -> None:
+        """Set the sweep effort for subsequent investigations."""
+        self.effort = _effort.normalize(effort)
 
     async def run(
         self,
@@ -985,15 +985,15 @@ class OllamaAgent:
 
         self.history.append({"role": "user", "content": prompt})
         messages: list[Any] = [
-            {"role": "system", "content": system_prompt_for_depth(self.depth)},
+            {"role": "system", "content": system_prompt_for_effort(self.effort)},
             *self.history,
         ]
         ctx = _AgentRunContext(messages=messages, tool_calls=[], on_tool_call=on_tool_call)
 
-        # Sweep depth caps the tool rounds. Ollama has no reliable tool_choice
+        # Sweep effort caps the tool rounds. Ollama has no reliable tool_choice
         # switch, so on the final turn we call without tools, which forces a
         # text answer from the evidence gathered so far.
-        max_rounds = _depth.rounds(self.depth)
+        max_rounds = _effort.rounds(self.effort)
         tool_rounds = 0
         try:
             client = ollama.AsyncClient(host=self.host)
@@ -1108,22 +1108,22 @@ class OpenAICompatibleAgent:
         model: str = "gpt-4o-mini",
         base_url: str = "http://localhost:8080/v1",
         api_key: str | None = None,
-        depth: str = _depth.DEFAULT,
+        effort: str = _effort.DEFAULT,
     ) -> None:
         self.model = model
         self.base_url = base_url
         # Many local servers ignore the key, but the SDK requires a non-empty string.
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "") or "sk-no-key-required"
-        self.depth = _depth.normalize(depth)
+        self.effort = _effort.normalize(effort)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
 
-    def set_depth(self, depth: str) -> None:
-        """Set the sweep depth for subsequent investigations."""
-        self.depth = _depth.normalize(depth)
+    def set_effort(self, effort: str) -> None:
+        """Set the sweep effort for subsequent investigations."""
+        self.effort = _effort.normalize(effort)
 
     async def run(
         self,
@@ -1159,15 +1159,15 @@ class OpenAICompatibleAgent:
 
         self.history.append({"role": "user", "content": prompt})
         messages: list[Any] = [
-            {"role": "system", "content": system_prompt_for_depth(self.depth)},
+            {"role": "system", "content": system_prompt_for_effort(self.effort)},
             *self.history,
         ]
         ctx = _AgentRunContext(messages=messages, tool_calls=[], on_tool_call=on_tool_call)
 
-        # Sweep depth caps the tool rounds. On the final turn we set
+        # Sweep effort caps the tool rounds. On the final turn we set
         # tool_choice="none" so the model writes its report instead of calling
         # another tool.
-        max_rounds = _depth.rounds(self.depth)
+        max_rounds = _effort.rounds(self.effort)
         tool_rounds = 0
         try:
             client = openai.AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)

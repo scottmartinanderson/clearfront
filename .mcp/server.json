@@ -3,7 +3,7 @@
   "name": "io.github.scottmartinanderson/clearfront",
   "title": "Clearfront",
   "description": "AI-powered OSINT agent & MCP server. 30 tools: email, breach, IP, WHOIS, DNS, Shodan, GitHub & more.",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "websiteUrl": "https://clearfront.sh",
   "repository": {
     "url": "https://github.com/scottmartinanderson/clearfront",
@@ -13,7 +13,7 @@
     {
       "registryType": "pypi",
       "identifier": "clearfront",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "transport": {
         "type": "stdio"
       },
