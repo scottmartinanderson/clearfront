@@ -1688,9 +1688,17 @@ document.addEventListener('alpine:init', () => {
       try { G.d3Force('charge').strength(-48); } catch (e) {}
       try { G.d3Force('link').distance(26).strength(0.3); } catch (e) {}
       try { G.d3Force('radial', this._sphereForce(R, 0.14)); } catch (e) {}
-      // Frame the sphere once it settles (the camera does not auto-follow the expanding layout).
-      let fitted = false;
-      G.onEngineStop(() => { if (!fitted) { fitted = true; try { G.zoomToFit(700, 55); } catch (e) {} } });
+      // Frame the sphere as the force layout settles. onEngineStop alone was unreliable: it can
+      // fire before the layout has expanded, so the one-shot fit framed a tiny half-settled blob
+      // that then grew off-screen. Re-fit on a short schedule (and on engine stop) until the user
+      // takes the camera; harmless repeats, and it guarantees the whole graph ends up in view.
+      let interacted = false;
+      const onGrab = () => { interacted = true; };
+      el.addEventListener('pointerdown', onGrab);
+      el.addEventListener('wheel', onGrab, { passive: true });
+      const fit = () => { if (interacted) return; try { G.zoomToFit(600, 55); } catch (e) {} };
+      G.onEngineStop(fit);
+      [500, 1400, 2800, 4200].forEach(ms => setTimeout(fit, ms));
       // Gentle auto-rotation (orbit) that stops the moment the user interacts. Frozen under
       // prefers-reduced-motion.
       if (!reduce) {
