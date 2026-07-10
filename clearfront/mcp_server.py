@@ -1,6 +1,6 @@
 # clearfront/mcp_server.py
 """
-Clearfront MCP Server, v2.5.0
+Clearfront MCP Server, v2.6.0
 
 Exposes all 30 OSINT tool capabilities plus multi-target investigation
 to MCP-compliant AI clients over standard I/O. Tools include:

@@ -63,7 +63,7 @@ body:
     id: clearfront_version
     attributes:
       label: Clearfront version
-      placeholder: "e.g. 2.5.0  (output of `clearfront --version`)"
+      placeholder: "e.g. 2.6.0  (output of `clearfront --version`)"
     validations:
       required: true
 
