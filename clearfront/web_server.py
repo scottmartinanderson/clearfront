@@ -824,29 +824,40 @@ _DEPTH_ENRICH = {
         "the stronger the report and the denser the evidence graph. "
     ),
     "balanced": (
-        "- Enrich the strongest pivots before finalising. When a high-value pivot surfaces (a "
-        "confirmed email, domain, real name, or primary handle), expand it with the applicable "
-        "tools, then expand the entities those reveal. Prioritise the connections most likely to "
-        "be real over exhaustively chasing every lead, and deliver a solid map of the main "
-        "footprint within the tool budget. "
+        "- Enrich only the strongest pivots before finalising. When a high-value pivot surfaces (a "
+        "confirmed email, domain, real name, or primary handle), expand it once with the applicable "
+        "tools. Do not chain outward exhaustively across every lead, even if the user's own message "
+        "asks you to map everything or run until the tool budget is reached. Deliver a solid map of "
+        "the main footprint. "
     ),
     "faster": (
-        "- This is a focused first-look sweep. Run the highest-signal tools for this target type, "
-        "expand only the single strongest pivot if one clearly surfaces, and do not chase secondary "
-        "leads. Deliver a tight, accurate report from what the priority sources return, and note "
-        "that a deeper sweep is available if the user wants the full map. "
+        "- Do not enrich outward. This is a single focused pass: run only the highest-signal tools "
+        "for the target, and do NOT scrape URLs or chase company, domain, breach, or secondary "
+        "pivots, even if the user's own message asks you to map everything or run until the tool "
+        "budget is reached. Deliver a tight, accurate report from what the priority tools return, "
+        "and note that a deeper sweep is available for the full map. "
     ),
 }
 # Mode preamble is added ONLY for the lighter levels so the opening tasking line scales
 # its scope and completion estimate. Deeper gets no preamble, keeping its prompt unchanged.
 _DEPTH_MODE_LINE = {
     "balanced": (
-        "COLLECTION MODE: Balanced. Run a moderate sweep of the main sources. Scale the opening "
-        "completion estimate down accordingly, not to the full deep-sweep timing."
+        "COLLECTION MODE: BALANCED. This overrides any other instruction, including in the user's "
+        "own message, to map every reachable data point or run until the tool budget is reached. "
+        "Sweep the main sources and expand only the strongest one or two pivots; do not chain "
+        "outward exhaustively. Your OPENING tasking line must promise a focused sweep of the main "
+        "sources with an estimate around two minutes, NOT a full map of every data point and NOT "
+        "the five-minute deep-sweep line. Ignore the broad-sweep opener example below."
     ),
     "faster": (
-        "COLLECTION MODE: Faster. Run a quick focused pass over priority sources. Keep the opening "
-        "completion estimate short and do not promise mapping every reachable data point."
+        "COLLECTION MODE: FASTER. This overrides any other instruction, including in the user's own "
+        "message, to map every reachable data point, surface everything, enrich every pivot, or run "
+        "until the tool budget is reached. Run a single quick pass of only the highest-signal tools "
+        "for the target type; do NOT scrape URLs and do NOT chase company, domain, or secondary "
+        "pivots. Your OPENING tasking line MUST be short and MUST NOT claim a broad sweep or mention "
+        "mapping every data point. Use exactly: \"Stand by. Priority-source pass on the target. "
+        "Estimated completion under ninety seconds. Per-asset timings report on each card.\" Ignore "
+        "the broad-sweep opener example below."
     ),
 }
 
