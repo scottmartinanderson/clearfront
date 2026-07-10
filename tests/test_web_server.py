@@ -493,3 +493,54 @@ class TestRunToolSelfLookup:
         assert by_name["search_ip"]["input_schema"]["required"] == []
         assert by_name["search_exposure"]["input_schema"]["required"] == []
         assert by_name["search_shodan"]["input_schema"]["required"] == ["input"]
+
+
+# ---------------------------------------------------------------------------
+# Sweep-depth control
+# ---------------------------------------------------------------------------
+
+
+class TestSweepDepth:
+    def test_round_caps_per_level(self):
+        from clearfront.web_server import _depth_rounds
+
+        assert _depth_rounds("faster") == 4
+        assert _depth_rounds("balanced") == 8
+        assert _depth_rounds("deeper") == 12
+
+    def test_unknown_depth_falls_back_to_deeper(self):
+        from clearfront.web_server import _depth_rounds
+
+        assert _depth_rounds("bogus") == _depth_rounds("deeper")
+
+    def test_env_override_sets_deeper_ceiling_and_caps_lighter_levels(self, monkeypatch):
+        from clearfront.web_server import _depth_rounds
+
+        monkeypatch.setenv("OIS_MAX_TOOL_ROUNDS", "6")
+        assert _depth_rounds("deeper") == 6
+        # lighter levels are capped below the ceiling, never above it
+        assert _depth_rounds("balanced") == 6
+        assert _depth_rounds("faster") == 4
+
+    def test_deeper_prompt_unchanged(self):
+        # Deeper must stay byte-identical to the historical prompt: no mode preamble,
+        # and its enrichment clause plus the graph suffix reproduce the original paragraph.
+        from clearfront.web_server import _DEPTH_ENRICH, _DEPTH_MODE_LINE, _GRAPH_SUFFIX
+
+        assert "deeper" not in _DEPTH_MODE_LINE
+        original = (
+            "- Enrich aggressively before finalising. The goal is a complete map of how the "
+            "target's footprint connects, not a minimal answer. Every time a pivot surfaces "
+            "(an email, domain, company, real name, phone, or an additional handle), expand "
+            "it with the applicable tools, then expand the new entities those reveal, chaining "
+            "outward until the tool budget is reached. Do not stop at one or two pivots. The "
+            "more real, connected entities you surface, the stronger the report and the denser "
+            "the evidence graph. Do not emit any graph block yourself; the evidence graph is "
+            "generated separately after your report."
+        )
+        assert _DEPTH_ENRICH["deeper"] + _GRAPH_SUFFIX == original
+
+    def test_chat_request_defaults_to_deeper(self):
+        from clearfront.web_server import ChatRequest
+
+        assert ChatRequest(message="hi").depth == "deeper"

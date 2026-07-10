@@ -670,6 +670,7 @@ class ChatRequest(BaseModel):
     message: str
     history: list[dict] = []
     model: str = "claude"
+    depth: str = "deeper"
     ollama_model: str = "llama3.2"
     ollama_host: str = "http://localhost:11434"
     openai_base_url: str = ""
@@ -800,7 +801,64 @@ _GRAPH_SYSTEM_PROMPT = (
 )
 
 
-async def _stream_claude(messages: list[dict]) -> AsyncIterator[dict]:
+# ---------------------------------------------------------------------------
+# Sweep depth: how far the analyst fans out per investigation. It trades collection
+# breadth (number of tool rounds) and the matching enrichment instruction, never the
+# analyst's reasoning or output quality. "deeper" is the full default fan-out and is
+# byte-identical to the historical prompt (no mode preamble, unchanged enrichment
+# clause); "balanced" and "faster" run fewer rounds with a softened enrichment clause
+# so the report reads deliberate, not truncated at the cap. The Deeper ceiling stays
+# env-tunable via OIS_MAX_TOOL_ROUNDS; the lighter levels are capped relative to it.
+# ---------------------------------------------------------------------------
+_GRAPH_SUFFIX = (
+    "Do not emit any graph block yourself; the evidence graph is generated separately "
+    "after your report."
+)
+_DEPTH_ENRICH = {
+    "deeper": (
+        "- Enrich aggressively before finalising. The goal is a complete map of how the target's "
+        "footprint connects, not a minimal answer. Every time a pivot surfaces (an email, domain, "
+        "company, real name, phone, or an additional handle), expand it with the applicable tools, "
+        "then expand the new entities those reveal, chaining outward until the tool budget is "
+        "reached. Do not stop at one or two pivots. The more real, connected entities you surface, "
+        "the stronger the report and the denser the evidence graph. "
+    ),
+    "balanced": (
+        "- Enrich the strongest pivots before finalising. When a high-value pivot surfaces (a "
+        "confirmed email, domain, real name, or primary handle), expand it with the applicable "
+        "tools, then expand the entities those reveal. Prioritise the connections most likely to "
+        "be real over exhaustively chasing every lead, and deliver a solid map of the main "
+        "footprint within the tool budget. "
+    ),
+    "faster": (
+        "- This is a focused first-look sweep. Run the highest-signal tools for this target type, "
+        "expand only the single strongest pivot if one clearly surfaces, and do not chase secondary "
+        "leads. Deliver a tight, accurate report from what the priority sources return, and note "
+        "that a deeper sweep is available if the user wants the full map. "
+    ),
+}
+# Mode preamble is added ONLY for the lighter levels so the opening tasking line scales
+# its scope and completion estimate. Deeper gets no preamble, keeping its prompt unchanged.
+_DEPTH_MODE_LINE = {
+    "balanced": (
+        "COLLECTION MODE: Balanced. Run a moderate sweep of the main sources. Scale the opening "
+        "completion estimate down accordingly, not to the full deep-sweep timing."
+    ),
+    "faster": (
+        "COLLECTION MODE: Faster. Run a quick focused pass over priority sources. Keep the opening "
+        "completion estimate short and do not promise mapping every reachable data point."
+    ),
+}
+
+
+def _depth_rounds(depth: str) -> int:
+    """Tool-round ceiling for a depth level. Deeper stays env-tunable (default 12); the
+    lighter levels are capped below it and never exceed it."""
+    ceiling = int(os.environ.get("OIS_MAX_TOOL_ROUNDS", "12"))
+    return {"faster": min(4, ceiling), "balanced": min(8, ceiling)}.get(depth, ceiling)
+
+
+async def _stream_claude(messages: list[dict], depth: str = "deeper") -> AsyncIterator[dict]:
     """Yield SSE event dicts while running an agentic Claude loop with tool_use."""
     try:
         import anthropic as _anthropic
@@ -816,12 +874,13 @@ async def _stream_claude(messages: list[dict]) -> AsyncIterator[dict]:
         yield {"type": "error", "message": "ANTHROPIC_API_KEY not set."}
         return
 
+    depth = depth if depth in _DEPTH_ENRICH else "deeper"
     client = _anthropic.AsyncAnthropic(api_key=api_key)
     msgs = list(messages)
     # Tool-calling rounds drive how far the analyst fans out across pivots, which is what
     # makes the evidence graph dense (more enriched entities = more nodes and connectors).
-    # Env-tunable so depth vs speed/cost can be dialled without a code change.
-    _MAX_TOOL_ROUNDS = int(os.environ.get("OIS_MAX_TOOL_ROUNDS", "12"))
+    # Scaled by the selected sweep depth; the Deeper ceiling stays env-tunable.
+    _MAX_TOOL_ROUNDS = _depth_rounds(depth)
     _tool_rounds = 0
     tool_ran = False
     # Memoize (tool, args) for this one investigation so the multi-round loop does not
@@ -830,7 +889,9 @@ async def _stream_claude(messages: list[dict]) -> AsyncIterator[dict]:
     # Cross-tool corroboration for this one investigation (additive notes only).
     corroboration_ledger = CorroborationLedger()
 
-    system_prompt = (
+    # Deeper gets no preamble (prompt unchanged); lighter levels get a mode line up top.
+    _preamble = f"{_DEPTH_MODE_LINE[depth]}\n\n" if depth in _DEPTH_MODE_LINE else ""
+    system_prompt = _preamble + (
         "You are CLEARFRONT, an open-source intelligence (OSINT) analyst. You write to the analytic "
         "tradecraft of the intelligence community, the standard behind platforms like Palantir "
         "Gotham. When the user gives a target, use the available tools to gather intelligence, then "
@@ -899,13 +960,8 @@ async def _stream_claude(messages: list[dict]) -> AsyncIterator[dict]:
         "'- Sherlock: 8 accounts verified. Reliability: high.', "
         "'- Pastebin: unavailable (network error).'\n"
         "- Use '- ' for every bullet. Never leave a blank line between consecutive bullets.\n\n"
-        "- Enrich aggressively before finalising. The goal is a complete map of how the target's "
-        "footprint connects, not a minimal answer. Every time a pivot surfaces (an email, domain, "
-        "company, real name, phone, or an additional handle), expand it with the applicable tools, "
-        "then expand the new entities those reveal, chaining outward until the tool budget is "
-        "reached. Do not stop at one or two pivots. The more real, connected entities you surface, "
-        "the stronger the report and the denser the evidence graph. Do not emit any graph block "
-        "yourself; the evidence graph is generated separately after your report."
+        + _DEPTH_ENRICH[depth]
+        + _GRAPH_SUFFIX
     )
 
     while True:
@@ -1722,7 +1778,7 @@ def create_app(*, host_guard: bool = False) -> FastAPI:
             elif backend == "ollama":
                 gen = _stream_ollama(messages, req.ollama_host, req.ollama_model)
             else:
-                gen = _stream_claude(messages)
+                gen = _stream_claude(messages, depth=req.depth)
 
             async for event in gen:
                 yield f"data: {json.dumps(event)}\n\n"

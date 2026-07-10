@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0], 2026-07-09
+
+### Added
+- **Sweep depth control** in the web console header. A no-noun chip picks how far each investigation fans out: **Faster** (fewer tool rounds, quick and light on API budget), **Balanced** (the main sources), or **Deeper** (the full exhaustive map). The menu explains each level and its time and cost tradeoff on hover and keyboard focus. The choice persists across sessions. Depth changes collection breadth only, never the analyst's reasoning or output quality, and **Deeper stays the default with its behavior unchanged**. Lets users who run on their own API key dial down token spend on lighter sweeps without touching the deep default. The `OIS_MAX_TOOL_ROUNDS` environment variable still sets the Deeper ceiling and drives the CLI.
+
 ## [2.5.0], 2026-07-02
 
 ### Added
