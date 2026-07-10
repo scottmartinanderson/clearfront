@@ -41,6 +41,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from clearfront import depth as _depthmod
 from clearfront.brightdata import BRIGHTDATA_LINK_WEB
 from clearfront.corroboration import CorroborationLedger
 from clearfront.utils import is_internal_url
@@ -862,11 +863,10 @@ _DEPTH_MODE_LINE = {
 }
 
 
-def _depth_rounds(depth: str) -> int:
-    """Tool-round ceiling for a depth level. Deeper stays env-tunable (default 12); the
-    lighter levels are capped below it and never exceed it."""
-    ceiling = int(os.environ.get("OIS_MAX_TOOL_ROUNDS", "12"))
-    return {"faster": min(4, ceiling), "balanced": min(8, ceiling)}.get(depth, ceiling)
+# The per-level round ceiling is shared with the terminal agent path; see
+# clearfront/depth.py. The enrichment and mode-line wording above stays here
+# because it is graph-flavoured and specific to the web console.
+_depth_rounds = _depthmod.rounds
 
 
 async def _stream_claude(messages: list[dict], depth: str = "deeper") -> AsyncIterator[dict]:

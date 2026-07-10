@@ -213,6 +213,17 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="is_pdf_disabled",
         help="Disable automatic PDF generation alongside Markdown reports.",
     )
+    parser.add_argument(
+        "--depth",
+        type=str,
+        default="deeper",
+        choices=["faster", "balanced", "deeper"],
+        help=(
+            "Sweep depth for the interactive analyst (default: deeper).  "
+            "faster: fewer sources, quick pass.  balanced: main sources.  "
+            "deeper: follows every lead.  Change it live with the 'depth' command."
+        ),
+    )
 
     subparsers = parser.add_subparsers(dest="command", metavar="command")
 
@@ -1389,6 +1400,7 @@ async def _async_main() -> None:
             openai_model=getattr(args, "openai_model", "gpt-4o-mini"),
             openai_api_key=getattr(args, "openai_api_key", None),
             is_pdf_disabled=getattr(args, "is_pdf_disabled", False),
+            depth=getattr(args, "depth", "deeper"),
         )
         await repl.run()
         return

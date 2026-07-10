@@ -31,6 +31,7 @@ from rich.panel import Panel
 
 from clearfront import __version__
 from clearfront.agent import OllamaAgent, OpenAICompatibleAgent, OISAgent
+from clearfront import depth as _depth
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ def _print_help() -> None:
                     "[bold]Commands:[/]",
                     "",
                     "  [#00ff88]<target>[/]          Investigate any target (email, username, domain, IP, name)",
+                    "  [#00ff88]depth[/]             Set sweep depth (faster, balanced, deeper)",
                     "  [#00ff88]clear[/]             Clear conversation memory",
                     "  [#00ff88]save[/]              Save last report to reports/",
                     "  [#00ff88]tools[/]             List available OSINT tools",
@@ -216,6 +218,7 @@ def _print_config(
     ollama_host: str,
     is_pdf_disabled: bool,
     openai_base_url: str = "",
+    depth: str = _depth.DEFAULT,
 ) -> None:
     masked = ("*" * 20 + api_key[-6:]) if api_key and len(api_key) > 6 else "not set"
     rows = [
@@ -229,6 +232,7 @@ def _print_config(
     else:
         rows.append(f"[bold]Ollama:[/]   {ollama_host}")
     rows += [
+        f"[bold]Depth:[/]    {depth}",
         "[bold]Reports:[/]  ./reports/",
         f"[bold]PDF:[/]      {'disabled' if is_pdf_disabled else 'enabled'}",
     ]
@@ -276,6 +280,7 @@ class OISRepl:
         openai_model: str = "gpt-4o-mini",
         openai_api_key: str | None = None,
         is_pdf_disabled: bool = False,
+        depth: str = _depth.DEFAULT,
     ) -> None:
         self._api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         self._provider = provider
@@ -285,12 +290,14 @@ class OISRepl:
         self._openai_model = openai_model
         self._openai_api_key = openai_api_key
         self._is_pdf_disabled = is_pdf_disabled
+        self._depth = _depth.normalize(depth)
 
         self._agent: OISAgent | OllamaAgent | OpenAICompatibleAgent
         if provider == "ollama":
             self._agent = OllamaAgent(
                 model=ollama_model,
                 host=ollama_host,
+                depth=self._depth,
             )
             self._display_model = ollama_model
         elif provider == "openai":
@@ -298,10 +305,11 @@ class OISRepl:
                 model=openai_model,
                 base_url=openai_base_url,
                 api_key=openai_api_key,
+                depth=self._depth,
             )
             self._display_model = openai_model
         else:
-            self._agent = OISAgent(api_key=self._api_key)
+            self._agent = OISAgent(api_key=self._api_key, depth=self._depth)
             self._display_model = "claude-sonnet-4-20250514"
 
         self._last_response: str = ""
@@ -449,7 +457,7 @@ class OISRepl:
             return False
         os.environ["ANTHROPIC_API_KEY"] = key
         self._api_key = key
-        self._agent = OISAgent(api_key=key)
+        self._agent = OISAgent(api_key=key, depth=self._depth)
         saved = self._persist_key_to_env(key)
         if saved:
             console.print(f"\n  [dim]Key saved to {saved} and active for this session.[/]\n")
@@ -512,7 +520,36 @@ class OISRepl:
                         self._ollama_host,
                         self._is_pdf_disabled,
                         self._openai_base_url,
+                        self._depth,
                     )
+                    continue
+
+                # 'depth' shows the current level; 'depth <level>' sets it. Only
+                # treat 'depth <arg>' as a command when <arg> is a real level, so
+                # a genuine query that happens to start with 'depth' still runs.
+                depth_parts = user_input.split(maxsplit=1)
+                if depth_parts[0].lower() == "depth" and (
+                    len(depth_parts) == 1
+                    or depth_parts[1].strip().lower() in {lvl["v"] for lvl in _depth.LEVELS}
+                ):
+                    if len(depth_parts) == 2:
+                        chosen = depth_parts[1].strip().lower()
+                        self._depth = chosen
+                        self._agent.set_depth(chosen)
+                        console.print(
+                            f"  [dim]Sweep depth set to[/] [#00ff88]{chosen}[/][dim]. "
+                            f"{_depth.describe(chosen)}[/]\n"
+                        )
+                    else:
+                        console.print(f"\n  [bold]Sweep depth:[/] [#00ff88]{self._depth}[/]")
+                        for lvl in _depth.LEVELS:
+                            marker = "[#00ff88]›[/]" if lvl["v"] == self._depth else " "
+                            console.print(
+                                f"  {marker} [#00ff88]{lvl['v']:<9}[/][dim]{lvl['desc']}[/]"
+                            )
+                        console.print(
+                            "  [dim]Set with: depth faster | balanced | deeper[/]\n"
+                        )
                     continue
 
                 if user_input.lower() == "save":

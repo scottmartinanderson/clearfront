@@ -84,6 +84,76 @@ SYSTEM_PROMPT = INVESTIGATION_STRATEGY + "\n\n" + ANALYST_CORE
 
 
 # ---------------------------------------------------------------------------
+# Sweep depth (terminal agent): swap the enrichment instruction and, for the
+# lighter levels, prepend a forceful collection-mode line. Deeper is the full
+# default fan-out and returns SYSTEM_PROMPT byte-identical. The round ceiling
+# that pairs with each level lives in clearfront/depth.py.
+# ---------------------------------------------------------------------------
+
+# The exact aggressive-enrichment sentence embedded in ANALYST_CORE above. Kept
+# as a constant so the lighter levels can swap it out reliably; a test asserts
+# it still occurs verbatim in SYSTEM_PROMPT so an edit to ANALYST_CORE cannot
+# silently break the swap.
+_ENRICH_DEEPER = (
+    "- Enrich aggressively before finalising. Every time a pivot surfaces (an email, domain, "
+    "company, real name, phone, or an additional handle), expand it with the applicable tools, "
+    "then expand the new entities those reveal, chaining outward until the tool budget is reached. "
+    "The more real, connected entities you surface, the stronger the report."
+)
+
+AGENT_ENRICH = {
+    "deeper": _ENRICH_DEEPER,
+    "balanced": (
+        "- Enrich only the strongest pivots before finalising. When a high-value pivot surfaces "
+        "(a confirmed email, domain, real name, or primary handle), expand it once with the "
+        "applicable tools. Do not chain outward exhaustively across every lead, even if the user's "
+        "own message asks you to map everything or run until the tool budget is reached. Deliver a "
+        "solid report on the main footprint."
+    ),
+    "faster": (
+        "- Do not enrich outward. This is a single focused pass: run only the highest-signal tools "
+        "for the target, and do not scrape URLs or chase company, domain, breach, or secondary "
+        "pivots, even if the user's own message asks you to map everything or run until the tool "
+        "budget is reached. Deliver a tight, accurate report from what the priority tools return, "
+        "and note that a deeper sweep is available for the full map."
+    ),
+}
+
+# Prepended only for the lighter levels, so the instruction to run light wins
+# over any "map everything" language in the base prompt or the user's message.
+AGENT_MODE_LINE = {
+    "balanced": (
+        "COLLECTION MODE: BALANCED. This overrides any other instruction, including in the user's "
+        "own message, to map every reachable data point or run until the tool budget is reached. "
+        "Sweep the main sources and expand only the strongest one or two pivots. Do not chain "
+        "outward exhaustively."
+    ),
+    "faster": (
+        "COLLECTION MODE: FASTER. This overrides any other instruction, including in the user's own "
+        "message, to map every reachable data point, enrich every pivot, or run until the tool "
+        "budget is reached. Run a single quick pass of only the highest-signal tools for the target "
+        "type. Do not scrape URLs and do not chase company, domain, or secondary pivots."
+    ),
+}
+
+
+def system_prompt_for_depth(depth: str) -> str:
+    """Return the terminal agent's system prompt shaped for a sweep depth.
+
+    Deeper returns SYSTEM_PROMPT unchanged. Balanced and Faster swap the
+    enrichment sentence for the lighter instruction and prepend the matching
+    collection-mode line.
+    """
+    if depth not in AGENT_ENRICH:
+        depth = "deeper"
+    core = SYSTEM_PROMPT
+    if depth != "deeper":
+        core = core.replace(_ENRICH_DEEPER, AGENT_ENRICH[depth])
+    preamble = AGENT_MODE_LINE.get(depth)
+    return f"{preamble}\n\n{core}" if preamble else core
+
+
+# ---------------------------------------------------------------------------
 # Compact variant for small local models (Ollama)
 # ---------------------------------------------------------------------------
 

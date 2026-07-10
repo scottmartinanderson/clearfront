@@ -57,7 +57,8 @@ from clearfront.tools.search_wayback import run_wayback_osint
 from clearfront.tools.search_greynoise import run_greynoise_osint
 from clearfront.tools.search_hudsonrock import run_hudsonrock_osint
 from clearfront.pivot import investigate_graph_for_agent
-from clearfront.prompts import SYSTEM_PROMPT
+from clearfront.prompts import system_prompt_for_depth
+from clearfront import depth as _depth
 
 logger = logging.getLogger(__name__)
 
@@ -787,16 +788,22 @@ class OISAgent:
         self,
         api_key: str | None = None,
         model: str = "claude-sonnet-4-20250514",
+        depth: str = _depth.DEFAULT,
     ) -> None:
         self.client = anthropic.AsyncAnthropic(
             api_key=api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         )
         self.model = model
+        self.depth = _depth.normalize(depth)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
+
+    def set_depth(self, depth: str) -> None:
+        """Set the sweep depth for subsequent investigations."""
+        self.depth = _depth.normalize(depth)
 
     async def run(
         self,
@@ -825,8 +832,17 @@ class OISAgent:
             tool_calls=[],
             on_tool_call=on_tool_call,
         )
+        # Sweep depth shapes the system prompt (enrichment instruction) and caps
+        # the number of tool rounds. When the cap is reached we do not abort; we
+        # take one more turn with tools disabled so the model writes its report
+        # from the evidence gathered so far.
+        system_text = system_prompt_for_depth(self.depth)
+        max_rounds = _depth.rounds(self.depth)
+        tool_rounds = 0
         try:
             while True:
+                tool_rounds += 1
+                force_final = tool_rounds > max_rounds
                 # Prompt caching: a breakpoint on the (single) system block caches the
                 # system prompt + all tool definitions together (tools render before
                 # system), so that large stable prefix is re-billed at ~0.1x on every
@@ -840,11 +856,12 @@ class OISAgent:
                     system=[
                         {
                             "type": "text",
-                            "text": SYSTEM_PROMPT,
+                            "text": system_text,
                             "cache_control": {"type": "ephemeral"},
                         }
                     ],
                     tools=TOOL_DEFINITIONS,  # type: ignore[arg-type]
+                    tool_choice={"type": "none"} if force_final else {"type": "auto"},
                     messages=ctx.messages,  # type: ignore[arg-type]
                     cache_control={"type": "ephemeral"},
                 )
@@ -911,14 +928,20 @@ class OllamaAgent:
         self,
         model: str = "llama3.2",
         host: str = "http://localhost:11434",
+        depth: str = _depth.DEFAULT,
     ) -> None:
         self.model = model
         self.host = host
+        self.depth = _depth.normalize(depth)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
+
+    def set_depth(self, depth: str) -> None:
+        """Set the sweep depth for subsequent investigations."""
+        self.depth = _depth.normalize(depth)
 
     async def run(
         self,
@@ -962,21 +985,27 @@ class OllamaAgent:
 
         self.history.append({"role": "user", "content": prompt})
         messages: list[Any] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt_for_depth(self.depth)},
             *self.history,
         ]
         ctx = _AgentRunContext(messages=messages, tool_calls=[], on_tool_call=on_tool_call)
 
+        # Sweep depth caps the tool rounds. Ollama has no reliable tool_choice
+        # switch, so on the final turn we call without tools, which forces a
+        # text answer from the evidence gathered so far.
+        max_rounds = _depth.rounds(self.depth)
+        tool_rounds = 0
         try:
             client = ollama.AsyncClient(host=self.host)
             while True:
-                response = await client.chat(
-                    model=self.model,
-                    messages=ctx.messages,
-                    tools=_OLLAMA_TOOLS,
-                )
+                tool_rounds += 1
+                force_final = tool_rounds > max_rounds
+                chat_kwargs: dict[str, Any] = {"model": self.model, "messages": ctx.messages}
+                if not force_final:
+                    chat_kwargs["tools"] = _OLLAMA_TOOLS
+                response = await client.chat(**chat_kwargs)
                 msg = response.message
-                if not msg.tool_calls:
+                if force_final or not msg.tool_calls:
                     text = msg.content or ""
                     self.history.append({"role": "assistant", "content": text})
                     return AgentResponse(content=text, tool_calls=ctx.tool_calls)
@@ -1079,16 +1108,22 @@ class OpenAICompatibleAgent:
         model: str = "gpt-4o-mini",
         base_url: str = "http://localhost:8080/v1",
         api_key: str | None = None,
+        depth: str = _depth.DEFAULT,
     ) -> None:
         self.model = model
         self.base_url = base_url
         # Many local servers ignore the key, but the SDK requires a non-empty string.
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "") or "sk-no-key-required"
+        self.depth = _depth.normalize(depth)
         self.history: list[dict[str, Any]] = []
 
     def clear_history(self) -> None:
         """Reset conversation memory."""
         self.history = []
+
+    def set_depth(self, depth: str) -> None:
+        """Set the sweep depth for subsequent investigations."""
+        self.depth = _depth.normalize(depth)
 
     async def run(
         self,
@@ -1124,19 +1159,26 @@ class OpenAICompatibleAgent:
 
         self.history.append({"role": "user", "content": prompt})
         messages: list[Any] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt_for_depth(self.depth)},
             *self.history,
         ]
         ctx = _AgentRunContext(messages=messages, tool_calls=[], on_tool_call=on_tool_call)
 
+        # Sweep depth caps the tool rounds. On the final turn we set
+        # tool_choice="none" so the model writes its report instead of calling
+        # another tool.
+        max_rounds = _depth.rounds(self.depth)
+        tool_rounds = 0
         try:
             client = openai.AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
             while True:
+                tool_rounds += 1
+                force_final = tool_rounds > max_rounds
                 response = await client.chat.completions.create(
                     model=self.model,
                     messages=ctx.messages,
                     tools=_OPENAI_TOOLS,
-                    tool_choice="auto",
+                    tool_choice="none" if force_final else "auto",
                     max_tokens=_MAX_TOKENS,
                 )
                 if not response.choices:
@@ -1148,7 +1190,7 @@ class OpenAICompatibleAgent:
                         ),
                     )
                 msg = response.choices[0].message
-                if not msg.tool_calls:
+                if force_final or not msg.tool_calls:
                     text = msg.content or ""
                     self.history.append({"role": "assistant", "content": text})
                     return AgentResponse(content=text, tool_calls=ctx.tool_calls)
