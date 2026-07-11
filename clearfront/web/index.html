@@ -15,17 +15,19 @@
   /* Swappable mono typeface (one line to A/B): JetBrains Mono | IBM Plex Mono */
   :root { --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; }
 
-  /* DARK, warm near-black institutional console (Dossier tint, OKLCH hue 85
-     at 45% chroma so raised surfaces never read brown; same undertone family
-     as the light paper theme). Greyscale chrome only. */
+  /* DARK, pure-black institutional console. --bg and --surface are BOTH true
+     #000 on purpose: any two adjacent near-blacks band visibly in compressed
+     or screen-recorded footage, so panels are delineated by borders alone —
+     do not reintroduce surface elevation here. The warm Dossier undertone
+     survives in border/text tokens only. Greyscale chrome only. */
   :root {
-    --bg: #0c0b09;
-    --surface: #141312;
-    --surface-dark: #1d1c1a;
+    --bg: #000000;
+    --surface: #000000;
+    --surface-dark: #0a0a0a;
     --border: #292826;
     --text-primary: #e8e7e4;
     --text-secondary: #908f8c;
-    --text-muted: #7d7b79;   /* raised to clear WCAG AA (~4.9:1 on --bg) */
+    --text-muted: #7d7b79;   /* clears WCAG AA (~5.1:1 on black) */
     /* semantic accents, used ONLY to encode data severity, never for chrome */
     --accent: #3fb950;   /* OK / clean / confirmed (green) */
     --yellow: #d29922;   /* WATCH / caution (amber) */
@@ -68,7 +70,7 @@
   /* Hover variants */
   .hover\:text-primary:hover     { color: var(--text-primary); }
   .hover\:text-secondary:hover   { color: var(--text-secondary); }
-  .hover\:bg-surface:hover       { background-color: var(--surface); }
+  .hover\:bg-surface:hover       { background-color: color-mix(in srgb, var(--text-primary) 6%, transparent); } /* surface == bg in dark; a flat fill would be invisible */
   .hover\:bg-border-50:hover     { background-color: color-mix(in srgb, var(--border) 50%, transparent); }
   .hover\:bg-accent-80:hover     { background-color: color-mix(in srgb, var(--text-primary) 78%, var(--bg)); }
   .hover\:border-accent-40:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
@@ -1534,7 +1536,7 @@ document.addEventListener('alpine:init', () => {
       const light = document.documentElement.classList.contains('light');
       return {
         light,
-        bg:   v('--bg', light ? '#f5f4f1' : '#0c0b09'),
+        bg:   v('--bg', light ? '#f5f4f1' : '#000000'),
         node: v('--text-muted', light ? '#696d75' : '#7d7b79'),    // uniform node colour at rest
         subj: v('--text-secondary', light ? '#5f636b' : '#908f8c'),// subject: a touch brighter
         hi:   v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),  // highlight "accent" (mono pop)
