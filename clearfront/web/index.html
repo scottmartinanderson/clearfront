@@ -15,19 +15,20 @@
   /* Swappable mono typeface (one line to A/B): JetBrains Mono | IBM Plex Mono */
   :root { --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; }
 
-  /* DARK, pure-black institutional console. --bg and --surface are BOTH true
-     #000 on purpose: any two adjacent near-blacks band visibly in compressed
-     or screen-recorded footage, so panels are delineated by borders alone —
-     do not reintroduce surface elevation here. The warm Dossier undertone
-     survives in border/text tokens only. Greyscale chrome only. */
+  /* DARK, pure-black institutional console in Vercel-neutral greys (Geist
+     dark scale: text = gray-1000/900/800, border = gray-400). --bg and
+     --surface are BOTH true #000 on purpose: any two adjacent near-blacks
+     band visibly in compressed or screen-recorded footage, so panels are
+     delineated by borders alone — do not reintroduce surface elevation
+     here. The warm Dossier undertone lives in the light theme only. */
   :root {
     --bg: #000000;
     --surface: #000000;
     --surface-dark: #0a0a0a;
-    --border: #292826;
-    --text-primary: #e8e7e4;
-    --text-secondary: #908f8c;
-    --text-muted: #7d7b79;   /* clears WCAG AA (~5.1:1 on black) */
+    --border: #2e2e2e;
+    --text-primary: #ededed;
+    --text-secondary: #a1a1a1;
+    --text-muted: #7d7d7d;   /* clears WCAG AA (~5.2:1 on black) */
     /* semantic accents, used ONLY to encode data severity, never for chrome */
     --accent: #3fb950;   /* OK / clean / confirmed (green) */
     --yellow: #d29922;   /* WATCH / caution (amber) */
@@ -627,7 +628,7 @@
     <div x-show="messages.length === 0"
          class="flex-1 flex flex-col justify-center py-16">
       <div class="hero mb-8 cf-hidden" :class="revealHero && (bootAnim ? 'cf-hero-in' : 'cf-shown')">
-      <!--HERO_START--><pre class="hero-ascii font-mono text-secondary select-none hidden sm:block" aria-label="CLEARFRONT"> ██████╗██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
+      <!--HERO_START--><pre class="hero-ascii font-mono text-primary select-none hidden sm:block" aria-label="CLEARFRONT"> ██████╗██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
 ██╔════╝██║     ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔═══██╗████╗  ██║╚══██╔══╝
 ██║     ██║     █████╗  ███████║██████╔╝█████╗  ██████╔╝██║   ██║██╔██╗ ██║   ██║   
 ██║     ██║     ██╔══╝  ██╔══██║██╔══██╗██╔══╝  ██╔══██╗██║   ██║██║╚██╗██║   ██║   
@@ -1537,13 +1538,13 @@ document.addEventListener('alpine:init', () => {
       return {
         light,
         bg:   v('--bg', light ? '#f5f4f1' : '#000000'),
-        node: v('--text-muted', light ? '#696d75' : '#7d7b79'),    // uniform node colour at rest
-        subj: v('--text-secondary', light ? '#5f636b' : '#908f8c'),// subject: a touch brighter
-        hi:   v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),  // highlight "accent" (mono pop)
-        part: v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),  // travelling particle colour
-        link:   light ? 'rgba(72,76,84,0.42)' : 'rgba(150,145,135,0.34)',   // resting links: a touch darker (light) / brighter (dark) so they read on the mono bg
-        linkhi: v('--text-primary', light ? '#1a1b1e' : '#e8e7e4'),
-        txt:  light ? 'rgba(60,64,72,0.85)' : 'rgba(211,209,203,0.82)',
+        node: v('--text-muted', light ? '#696d75' : '#7d7d7d'),    // uniform node colour at rest
+        subj: v('--text-secondary', light ? '#5f636b' : '#a1a1a1'),// subject: a touch brighter
+        hi:   v('--text-primary', light ? '#1a1b1e' : '#ededed'),  // highlight "accent" (mono pop)
+        part: v('--text-primary', light ? '#1a1b1e' : '#ededed'),  // travelling particle colour
+        link:   light ? 'rgba(72,76,84,0.42)' : 'rgba(143,143,143,0.34)',   // resting links: a touch darker (light) / brighter (dark) so they read on the mono bg
+        linkhi: v('--text-primary', light ? '#1a1b1e' : '#ededed'),
+        txt:  light ? 'rgba(60,64,72,0.85)' : 'rgba(210,210,210,0.82)',
       };
     },
 
