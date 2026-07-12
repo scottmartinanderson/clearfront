@@ -174,6 +174,27 @@
     .hero-lockup-sub { display: flex; }
   }
 
+  /* narrow-header tiers below the sm breakpoint: keep the effort chip (and,
+     once it fits, the model chip) alive in 9:16 capture windows. Same plain
+     CSS + 448px floor as the hero above; between 448px and sm the version
+     text and the leak-test icon yield the room. */
+  .hdr-effort, .hdr-divider, .hdr-divider-2, .hdr-model { display: none; }
+  .hdr-wifi { display: flex; } /* display owned here, not by the .flex utility, so the band rule below can hide it */
+  @media (min-width: 448px) {
+    .hdr-effort, .hdr-divider { display: block; }
+  }
+  @media (min-width: 520px) {
+    .hdr-model { display: flex; }
+    .hdr-divider-2 { display: block; }
+  }
+  @media (min-width: 448px) and (max-width: 639.98px) {
+    .hdr-version, .hdr-wifi { display: none; }
+  }
+  /* home-list row descriptions: same idea, 480px floor (the longest
+     title + description pair fits the column from there up). */
+  .row-desc { display: none; }
+  @media (min-width: 480px) { .row-desc { display: block; } }
+
   /* keyboard focus, visible ring in both themes (overrides focus:outline-none) */
   :focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; border-radius: 3px; }
   input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
@@ -521,7 +542,7 @@
   <!-- wordmark: lowercase IBM Plex Mono regular, version as muted baseline metadata -->
   <div class="flex items-baseline flex-none gap-2">
     <span class="text-sm" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:400;">clearfront</span>
-    <span class="text-muted" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.02em;font-variant-numeric:tabular-nums;">v<span x-text="version"></span></span>
+    <span class="hdr-version text-muted" style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.02em;font-variant-numeric:tabular-nums;">v<span x-text="version"></span></span>
   </div>
 
   <div class="flex-1"></div>
@@ -529,7 +550,7 @@
   <!-- right: backend status readout + controls -->
   <div class="flex items-center gap-1.5 flex-none">
     <!-- effort selector: no-noun chip, opens a level menu whose footer explains the cost -->
-    <div class="relative hidden sm:block" @keydown.escape.window="depthOpen = false">
+    <div class="hdr-effort relative" @keydown.escape.window="depthOpen = false">
       <button @click="depthOpen = !depthOpen"
               :aria-expanded="depthOpen"
               aria-haspopup="true"
@@ -563,11 +584,11 @@
              style="font-size:12px;line-height:1.42;" x-text="depthExplained().desc"></div>
       </div>
     </div>
-    <div class="hidden sm:block w-px h-5 bg-border mx-0.5"></div>
+    <div class="hdr-divider w-px h-5 bg-border mx-0.5"></div>
     <!-- backend status readout -->
     <button @click="showSettings = true"
             :title="aiBackend === 'none' ? 'No AI backend configured, click to set up' : 'AI backend, click to change'"
-            class="hidden sm:flex items-center gap-2 font-mono text-xs px-2.5 py-1 rounded border border-app text-secondary bg-transparent hover:text-primary hover:border-strong transition-colors cursor-pointer whitespace-nowrap">
+            class="hdr-model items-center gap-2 font-mono text-xs px-2.5 py-1 rounded border border-app text-secondary bg-transparent hover:text-primary hover:border-strong transition-colors cursor-pointer whitespace-nowrap">
       <span class="w-1.5 h-1.5 rounded-full flex-none"
             :style="aiBackend === 'none' ? 'background-color:var(--red)' : 'background-color:var(--accent)'"></span>
       <span x-show="aiBackend !== 'none' && settings.chatModel === 'claude'" x-text="claudeModelLabel"></span>
@@ -575,11 +596,11 @@
       <span x-show="aiBackend !== 'none' && settings.chatModel === 'openai'">OpenAI <span x-text="settings.openaiModel || 'model'"></span></span>
       <span x-show="aiBackend === 'none'">Not configured</span>
     </button>
-    <div class="hidden sm:block w-px h-5 bg-border mx-0.5"></div>
+    <div class="hdr-divider-2 w-px h-5 bg-border mx-0.5"></div>
     <button @click="openLeakTest()"
             aria-label="IP leak test"
             title="Browser IP leak test (WebRTC / IPv6 / DNS)"
-            class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface transition-colors">
+            class="hdr-wifi w-8 h-8 items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface transition-colors">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
         <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
@@ -668,7 +689,7 @@ OPEN-SOURCE INTELLIGENCE                                     AUTHORIZED USE · v
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-60" x-html="s.svgIcon"></svg>
                 <span class="font-mono truncate" style="font-size:13px;" x-text="s.title"></span>
                 <span class="ml-auto flex items-center gap-2.5 flex-none">
-                  <span class="hidden sm:block font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
+                  <span class="row-desc font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-30"><polyline points="9 18 15 12 9 6"/></svg>
                 </span>
               </button>
@@ -688,7 +709,7 @@ OPEN-SOURCE INTELLIGENCE                                     AUTHORIZED USE · v
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-60" x-html="s.svgIcon"></svg>
                 <span class="font-mono truncate" style="font-size:13px;" x-text="s.title"></span>
                 <span class="ml-auto flex items-center gap-2.5 flex-none">
-                  <span class="hidden sm:block font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
+                  <span class="row-desc font-mono text-muted" style="font-size:11px;" x-text="s.desc"></span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="flex-none opacity-30"><polyline points="9 18 15 12 9 6"/></svg>
                 </span>
               </button>
