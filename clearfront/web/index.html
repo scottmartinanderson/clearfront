@@ -150,17 +150,28 @@
   textarea { font-family:inherit; }
   textarea:focus { outline:none; }
 
-  /* hero wordmark, fluid ANSI on desktop (scales to its column, never clips),
-     compact legible lockup below the sm breakpoint. */
+  /* hero wordmark, fluid ANSI down to 448px viewports (scales to its column,
+     never clips; the low cutoff keeps the art alive in narrow 9:16 capture
+     windows), compact legible lockup below that. Display is swapped here in
+     plain CSS: the Play CDN does not compile arbitrary breakpoint variants
+     like min-[28rem]:block, so utility classes cannot express this cutoff. */
   .hero { container-type: inline-size; }
   .hero-ascii {
+    display: block;
     font-size: clamp(6px, 1.7cqi, 11px);
     line-height: 1.4; letter-spacing: 0; white-space: pre;
     transform: skewX(-9deg); transform-origin: bottom left;
   }
   .hero-lockup {
+    display: none;
     font-size: clamp(26px, 12vw, 38px); font-weight: 700; letter-spacing: 0.14em;
     line-height: 1.1; transform: skewX(-9deg); transform-origin: bottom left;
+  }
+  .hero-lockup-sub { display: none; }
+  @media (max-width: 447.98px) {
+    .hero-ascii { display: none; }
+    .hero-lockup { display: block; }
+    .hero-lockup-sub { display: flex; }
   }
 
   /* keyboard focus, visible ring in both themes (overrides focus:outline-none) */
@@ -628,7 +639,7 @@
     <div x-show="messages.length === 0"
          class="flex-1 flex flex-col justify-center py-16">
       <div class="hero mb-8 cf-hidden" :class="revealHero && (bootAnim ? 'cf-hero-in' : 'cf-shown')">
-      <!--HERO_START--><pre class="hero-ascii font-mono text-primary select-none hidden sm:block" aria-label="CLEARFRONT"> ██████╗██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
+      <!--HERO_START--><pre class="hero-ascii font-mono text-primary select-none" aria-label="CLEARFRONT"> ██████╗██╗     ███████╗ █████╗ ██████╗ ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
 ██╔════╝██║     ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔═══██╗████╗  ██║╚══██╔══╝
 ██║     ██║     █████╗  ███████║██████╔╝█████╗  ██████╔╝██║   ██║██╔██╗ ██║   ██║   
 ██║     ██║     ██╔══╝  ██╔══██║██╔══██╗██╔══╝  ██╔══██╗██║   ██║██║╚██╗██║   ██║   
@@ -637,8 +648,8 @@
 
 ────────────────────────────────────────────────────────────────────────────────────
 OPEN-SOURCE INTELLIGENCE                                     AUTHORIZED USE · v<span x-text="version"></span></pre><!--HERO_END-->
-        <div class="hero-lockup font-mono text-primary select-none block sm:hidden" aria-label="CLEARFRONT">CLEARFRONT</div>
-        <div class="border-t border-app mt-4 pt-2 flex items-center justify-between font-mono text-secondary gap-3 sm:hidden" style="font-size:10px;letter-spacing:0.05em;">
+        <div class="hero-lockup font-mono text-primary select-none" aria-label="CLEARFRONT">CLEARFRONT</div>
+        <div class="hero-lockup-sub border-t border-app mt-4 pt-2 items-center justify-between font-mono text-secondary gap-3" style="font-size:10px;letter-spacing:0.05em;">
           <span>OPEN-SOURCE INTELLIGENCE</span>
           <span class="text-muted whitespace-nowrap">AUTHORIZED USE</span>
         </div>
