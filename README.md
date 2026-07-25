@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Clearfront</h1>
   <p><strong>Open-source AI intelligence on your digital footprint.</strong></p>
-  <p>Give Clearfront an email, username, domain, IP, or name, and its AI security analyst scans public data sources in one sweep, then returns a calibrated report and an interactive evidence graph. Check your own exposure, or investigate an authorized target. It runs locally with your own API keys and sends nothing to us.</p>
+  <p>Clearfront, also known as Clearfront OSINT, is a free and open-source OSINT agent. Give it an email, username, domain, IP, or name, and its AI security analyst scans 3,400+ public data sources in one sweep, then returns a calibrated report and an interactive evidence graph. Check your own exposure, or investigate an authorized target. It runs locally with your own API keys and sends nothing to us.</p>
   <p>Interactive REPL · CLI · local web console · MCP server. Powered by Anthropic Claude, a local Ollama model, or any OpenAI-compatible endpoint.</p>
 </div>
 
