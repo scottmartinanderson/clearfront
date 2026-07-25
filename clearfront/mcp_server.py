@@ -1,9 +1,12 @@
 # clearfront/mcp_server.py
 """
-Clearfront MCP Server, v2.7.0
+Clearfront OSINT MCP Server, v2.7.0
 
-Exposes all 30 OSINT tool capabilities plus multi-target investigation
-to MCP-compliant AI clients over standard I/O. Tools include:
+Clearfront (Clearfront OSINT) is an open-source AI OSINT agent that maps a
+digital footprint across 3,400+ public data sources and returns a calibrated
+intelligence report. This server exposes all 30 OSINT tool capabilities plus
+multi-target investigation to MCP-compliant AI clients over standard I/O.
+Tools include:
 search_email, search_username, search_maigret, search_breach, search_whois,
 search_ip, search_domain, generate_dorks, search_paste, search_phone,
 search_shodan, search_virustotal, search_censys, search_ip2location,
