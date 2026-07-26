@@ -183,6 +183,24 @@ claude mcp list
 }
 ```
 
+### Agent Skill
+
+[`skills/clearfront-osint`](skills/clearfront-osint/SKILL.md) teaches an agent
+how to drive Clearfront: which approach fits a given request, the direct
+subcommands, how to read the confidence ratings, and the authorized-use rules.
+It follows the [Agent Skills](https://agentskills.io) open standard, so it works
+in Claude Code, Cursor, Gemini CLI, Copilot, Goose, OpenCode and the other
+skills-compatible clients.
+
+```bash
+npx skills add scottmartinanderson/clearfront
+```
+
+Install Clearfront itself as well (`pip install clearfront`); the skill is the
+instructions, not the tool. Use the skill when you want the agent to decide how
+to run a sweep, and the MCP server above when you want it calling the 30 tools
+directly.
+
 ## Docker
 
 ```bash
