@@ -189,7 +189,7 @@ claude mcp list
 how to drive Clearfront: which approach fits a given request, the direct
 subcommands, how to read the confidence ratings, and the authorized-use rules.
 It follows the [Agent Skills](https://agentskills.io) open standard, so it works
-in Claude Code, Cursor, Gemini CLI, Copilot, Goose, OpenCode and the other
+in Claude Code, Cursor, Codex, Copilot, VS Code, Gemini, Windsurf, Zed and the other
 skills-compatible clients.
 
 ```bash
