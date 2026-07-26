@@ -1,0 +1,71 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "sh.clearfront/clearfront",
+  "description": "OSINT sweep of a digital footprint: breaches, accounts, data brokers, domains and IPs",
+  "repository": {
+    "url": "https://github.com/scottmartinanderson/clearfront",
+    "source": "github"
+  },
+  "version": "2.7.2",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "clearfront",
+      "version": "2.7.2",
+      "runtimeHint": "uvx",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "--from",
+          "value": "clearfront"
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "clearfront-mcp"
+        }
+      ],
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "HIBP_API_KEY",
+          "description": "Have I Been Pwned API key, enables breach and paste lookups",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "IPINFO_TOKEN",
+          "description": "ipinfo.io token, enables IP geolocation and exposure reports",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "SHODAN_API_KEY",
+          "description": "Shodan API key, enables internet-exposed device lookups",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "VIRUSTOTAL_API_KEY",
+          "description": "VirusTotal API key, enables reputation checks on IPs, domains, URLs and file hashes",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "description": "Anthropic API key, only needed for the AI-assisted multi-target sweep tool",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

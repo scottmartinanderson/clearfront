@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.2], 2026-07-26
+
+### Added
+- **Agent skill** at `skills/clearfront-osint/`, following the [Agent Skills](https://agentskills.io) open standard, so Claude Code, Cursor, Gemini CLI, Copilot, Goose, OpenCode and the other skills-compatible clients can drive Clearfront directly. Install with `npx skills add scottmartinanderson/clearfront`. The skill covers choosing an approach for a given request, the direct subcommands, how to read the confidence and severity ratings, and the authorized-use rules. It declares its own behavior up front (outbound calls are the point, no credential or browser-profile access, no telemetry, and the `ollama` provider keeps a run entirely local), and it verifies Clearfront is present before running anything, since a virtualenv install reads as "command not found" rather than as a missing tool.
+- **Plugin manifest** at `.claude-plugin/plugin.json`, so Clearfront can be installed as a plugin rather than a bare skill.
+- **MCP Registry entry.** The README now carries the `mcp-name: sh.clearfront/clearfront` token, claiming the DNS-verified `sh.clearfront` namespace on the official registry rather than a personal-account namespace, and `server.json` describes the package for registry-fed directories.
+
+### Changed
+- **README documents both integration paths** and the line between them: the agent skill (instructions for driving the tool) versus the MCP server (direct access to all 30 tools).
+
+## [2.7.1], 2026-07-25
+
+### Added
+- **"Clearfront OSINT" recorded as the entity name** in the package description, keywords, MCP server docstring, and README opening, so the PyPI mirrors and MCP directories that scrape this metadata resolve the alias to the project.
+
+### Changed
+- **Dark theme flattened to pure black** with the greys neutralized to the Vercel scale, and the README console screenshots retaken against it. The previous captures still showed the retired warm palette.
+- **Header chips, row descriptions, and the ASCII wordmark survive narrow viewports.** All three were hidden below the `sm` breakpoint, which stripped them from the 9:16 capture windows used for vertical video. They now tier by what fits, down to 448px. True phone widths are unchanged.
+
 ## [2.7.0], 2026-07-10
 
 ### Added
