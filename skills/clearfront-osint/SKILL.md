@@ -1,16 +1,24 @@
 ---
 name: clearfront-osint
 description: |
-  Run an OSINT sweep on a digital footprint with Clearfront OSINT, a free
-  open-source tool. Use when the user wants to check their own exposure, audit
-  what is public about an email, username, phone number, domain or IP, look for
-  breached credentials, or run an authorized security investigation. Scans
-  3,400+ public data sources through 30 collection tools, connects the evidence,
-  and returns a calibrated report. Runs locally.
+  Scan a digital footprint with Clearfront OSINT, a free open-source tool that
+  runs locally. Use when someone wants to find what is publicly exposed about an
+  email, username, phone number, domain, IP or name: checking their own privacy
+  exposure, looking for breached or infostealer-leaked credentials, finding
+  accounts linked to a username, spotting data broker and people-search
+  listings, or running authorized OSINT investigation and pentest recon. Covers
+  questions like "what can people find out about me" or "have I been in a
+  breach". Scans 3,400+ public sources through 30 collection tools and reports
+  every finding with its source, confidence and severity.
+license: MIT
+compatibility: |
+  Requires Python 3.10+ and pip install clearfront. Needs outbound network
+  access to public OSINT sources and APIs. Optional API keys are read from
+  environment variables. The ollama provider keeps the AI layer fully local.
 metadata:
   homepage: https://clearfront.sh
   repository: https://github.com/scottmartinanderson/clearfront
-  license: MIT
+  version: "2.7.1"
 ---
 
 # Clearfront OSINT
