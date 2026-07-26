@@ -4,7 +4,7 @@
   <h1>Clearfront</h1>
   <p><strong>Open-source AI intelligence on your digital footprint.</strong></p>
   <p>Clearfront, also known as Clearfront OSINT, is a free and open-source OSINT agent. Give it an email, username, domain, IP, or name, and its AI security analyst scans 3,400+ public data sources in one sweep, then returns a calibrated report and an interactive evidence graph. Check your own exposure, or investigate an authorized target. It runs locally with your own API keys and sends nothing to us.</p>
-  <p>Interactive REPL · CLI · local web console · MCP server. Powered by Anthropic Claude, a local Ollama model, or any OpenAI-compatible endpoint.</p>
+  <p>Interactive REPL · CLI · local web console · MCP server · agent skill. Powered by Anthropic Claude, a local Ollama model, or any OpenAI-compatible endpoint.</p>
 </div>
 
 <div align="center">
@@ -32,7 +32,7 @@
 
 ## What is Clearfront?
 
-Clearfront is an AI agent for Open Source Intelligence with three interfaces: an interactive terminal REPL, a direct CLI, and an MCP server exposable to Claude Code, Claude Desktop, or any MCP-compatible client, plus a browser-based Web UI. The AI layer uses Anthropic's native tool use API (or a local Ollama model, or any OpenAI-compatible endpoint): the model issues hard stops when it needs a tool, your code executes the real binary, the actual output goes back, hallucination in tool results is structurally impossible.
+Clearfront is an AI agent for Open Source Intelligence with five interfaces: an interactive terminal REPL, a direct CLI, a browser-based web console, an MCP server exposable to Claude Code, Claude Desktop or any MCP-compatible client, and an agent skill for any client following the Agent Skills standard. The AI layer uses Anthropic's native tool use API (or a local Ollama model, or any OpenAI-compatible endpoint): the model issues hard stops when it needs a tool, your code executes the real binary, the actual output goes back, hallucination in tool results is structurally impossible.
 
 ## Installation
 
