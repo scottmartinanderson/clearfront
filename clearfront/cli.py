@@ -326,7 +326,7 @@ def _build_parser() -> argparse.ArgumentParser:
     # maigret
     maigret_cmd = subparsers.add_parser(
         "maigret",
-        help="Broad username scan across 3,000+ sites via maigret (no AI).",
+        help="Broad username scan across 3,400+ sites via maigret (no AI).",
     )
     maigret_cmd.add_argument("target", type=str, metavar="USERNAME")
     maigret_cmd.add_argument(
@@ -946,7 +946,7 @@ async def _handle_maigret(
     timeout: int,
     json_output: bool = False,
 ) -> None:
-    print(f"[*] Maigret scan (3,000+ sites): {target}", file=sys.stderr)
+    print(f"[*] Maigret scan (3,400+ sites): {target}", file=sys.stderr)
     result = await run_maigret_osint(username=target, timeout_seconds=timeout)
     if json_output:
         _emit_json(format_tool_result("search_maigret", target, result))

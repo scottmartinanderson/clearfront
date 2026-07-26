@@ -18,7 +18,7 @@
 
 </div>
 
-- **30 modular tools**, email, username (sherlock + WhatsMyName), broad username discovery across 3,000+ sites (maigret), search-based footprint discovery, IP, IP self-exposure report, domain, WHOIS, breach, Gravatar profile, EmailRep reputation, phone, paste, EXIF/GPS metadata, Shodan, VirusTotal, Censys, IP2Location, AbuseIPDB, GitHub (profile + public code/secret exposure), DNS, subdomain discovery via certificate transparency (crt.sh), historical URL recovery via the Wayback Machine (Internet Archive), mass-scan visibility (GreyNoise Community), infostealer-exposure check (Hudson Rock, free tier, no plaintext credentials), dork generation, live dork search, URL scraping, BTC/ETH address lookup, and passive domain recon (theHarvester)
+- **30 modular tools**, email, username (sherlock + WhatsMyName), broad username discovery across 3,400+ sites (maigret), search-based footprint discovery, IP, IP self-exposure report, domain, WHOIS, breach, Gravatar profile, EmailRep reputation, phone, paste, EXIF/GPS metadata, Shodan, VirusTotal, Censys, IP2Location, AbuseIPDB, GitHub (profile + public code/secret exposure), DNS, subdomain discovery via certificate transparency (crt.sh), historical URL recovery via the Wayback Machine (Internet Archive), mass-scan visibility (GreyNoise Community), infostealer-exposure check (Hudson Rock, free tier, no plaintext credentials), dork generation, live dork search, URL scraping, BTC/ETH address lookup, and passive domain recon (theHarvester)
 - **MCP server built in**, expose all 30 tools natively to Claude Code, Claude Desktop, and any MCP-compatible client
 - **Three AI backends**, Anthropic Claude (default), local Ollama, or any OpenAI-compatible endpoint; tool results come from real subprocess calls, never hallucinated
 - **Fully async**, parallel tool execution via `asyncio.gather()` with hard subprocess timeouts
@@ -127,7 +127,7 @@ The Bright Data link above is a referral link; signing up through it supports Cl
 | `search_dns` | dnspython (built-in) | A/AAAA/MX/NS/TXT/CNAME/SOA records; SPF, DMARC, DKIM analysis |
 | `search_dorks_live` | Bright Data SERP API | Live Google search results for dork queries (title, URL, snippet) |
 | `scrape_url` | Bright Data Web Unlocker | Fetch any URL bypassing Cloudflare/CAPTCHA, returns clean Markdown |
-| `search_maigret` | maigret | Username presence across 3,000+ sites |
+| `search_maigret` | maigret | Username presence across 3,400+ sites |
 | `search_footprint` | SERP (Serper / Bright Data / DuckDuckGo) | Search-based footprint discovery for a name or handle |
 | `search_gravatar` | Gravatar API | Public Gravatar profile for an email: avatar, display name, linked accounts |
 | `search_emailrep` | EmailRep.io | Email reputation and footprint summary |

@@ -98,7 +98,7 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
         "name": "search_maigret",
         "description": (
-            "Broad username/identity discovery across 3,000+ sites via maigret "
+            "Broad username/identity discovery across 3,400+ sites via maigret "
             "(also extracts profile details like name, location, creation date). "
             "Primary deep username pass, more sites than sherlock. Never pass a "
             "full name with spaces, derive username variations."

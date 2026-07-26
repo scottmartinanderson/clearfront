@@ -150,7 +150,7 @@ machine-readable results.
 ```bash
 clearfront email alice@example.com      # which sites an email is registered on
 clearfront username jdoe                # username across sites via sherlock
-clearfront maigret jdoe                 # broader sweep, 3,000+ sites
+clearfront maigret jdoe                 # broader sweep, 3,400+ sites
 clearfront dns example.com              # DNS records and mail security
 clearfront github jdoe                  # repos, commits, leaked commit emails
 clearfront exif photo.jpg               # GPS and metadata inside a file

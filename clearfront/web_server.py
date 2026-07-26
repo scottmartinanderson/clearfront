@@ -129,7 +129,7 @@ _TOOL_CATALOG: list[dict] = [
     },
     {
         "name": "search_maigret",
-        "description": "Broad username discovery across 3,000+ sites via maigret (also extracts profile details).",
+        "description": "Broad username discovery across 3,400+ sites via maigret (also extracts profile details).",
         "input_label": "Username",
         "input_placeholder": "johndoe99",
         "category": "Identity",
@@ -703,6 +703,21 @@ class OpenAITestRequest(BaseModel):
 
     openai_base_url: str = ""
     openai_api_key: str = ""
+
+
+class BoardSaveRequest(BaseModel):
+    """Body for POST /api/boards (create or update an investigation board).
+
+    A blank ``id`` creates a new board; a known id updates it in place. ``graph``
+    is the D3 node-link evidence graph the browser already holds, exactly what
+    the analyst sees, persisted locally and sent nowhere else."""
+
+    id: str = ""
+    title: str = ""
+    description: str = ""
+    color: str = "blue"
+    graph: dict = {}
+    notes: str = ""
 
 
 def _select_chat_backend(req: "ChatRequest") -> str:
@@ -1882,6 +1897,77 @@ def create_app(*, host_guard: bool = False) -> FastAPI:
             media_type=media_type,
             headers={"Content-Disposition": f'attachment; filename="{safe_title}.{ext}"'},
         )
+
+    # ------------------------------------------------------------------
+    # Investigation boards, local-first persistence of evidence graphs
+    #
+    # Boards are JSON files under ~/.clearfront/boards holding only the graph
+    # the analyst already sees in their browser. Like /api/setup, these routes
+    # are disabled on a network-exposed bind: they are unauthenticated, so a
+    # public bind would let any caller read, overwrite, or delete the operator's
+    # saved investigations.
+    # ------------------------------------------------------------------
+
+    def _boards_blocked():
+        if _PUBLIC_BIND:
+            return JSONResponse(
+                {"error": "Investigation boards are disabled on a network-exposed server."},
+                status_code=403,
+            )
+        return None
+
+    @app.get("/api/boards")
+    async def list_boards_route():
+        blocked = _boards_blocked()
+        if blocked:
+            return blocked
+        from clearfront import boards as _boards
+
+        return {"boards": _boards.list_boards()}
+
+    @app.get("/api/boards/{board_id}")
+    async def get_board_route(board_id: str):
+        blocked = _boards_blocked()
+        if blocked:
+            return blocked
+        from clearfront import boards as _boards
+
+        board = _boards.load_board(board_id)
+        if board is None:
+            return JSONResponse({"error": "Board not found."}, status_code=404)
+        return board
+
+    @app.post("/api/boards")
+    async def save_board_route(req: BoardSaveRequest):
+        blocked = _boards_blocked()
+        if blocked:
+            return blocked
+        from clearfront import boards as _boards
+
+        board = _boards.save_board(
+            board_id=req.id,
+            title=req.title,
+            description=req.description,
+            color=req.color,
+            graph=req.graph,
+            notes=req.notes,
+        )
+        if board is None:
+            return JSONResponse(
+                {"error": "A board needs a title."}, status_code=400
+            )
+        return board
+
+    @app.delete("/api/boards/{board_id}")
+    async def delete_board_route(board_id: str):
+        blocked = _boards_blocked()
+        if blocked:
+            return blocked
+        from clearfront import boards as _boards
+
+        if not _boards.delete_board(board_id):
+            return JSONResponse({"error": "Board not found."}, status_code=404)
+        return {"status": "ok", "deleted": board_id}
 
     @app.post("/api/setup")
     async def setup(request: Request):

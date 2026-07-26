@@ -23,14 +23,14 @@ Listed URLs (1):
 Profile: https://gravatar.com/abc123
 """
 
-MAIGRET_OUT = """Maigret found 2 account(s) for 'janedoe' (3,000+ site database):
+MAIGRET_OUT = """Maigret found 2 account(s) for 'janedoe' (3,400+ site database):
 
 [+] GitHub: https://github.com/janedoe
       fullname: Jane Doe
       location: SF
 [+] Reddit: https://reddit.com/user/janedoe
 
-Source: maigret (account-existence across 3,000+ sites).
+Source: maigret (account-existence across 3,400+ sites).
 """
 
 

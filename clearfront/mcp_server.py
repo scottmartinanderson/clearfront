@@ -107,7 +107,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="search_maigret",
-            description="Broad username/identity discovery across 3,000+ sites via maigret (also extracts profile details).",
+            description="Broad username/identity discovery across 3,400+ sites via maigret (also extracts profile details).",
             inputSchema=_with_json(
                 {
                     "type": "object",

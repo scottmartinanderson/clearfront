@@ -1,6 +1,6 @@
 # clearfront/tools/search_maigret.py
 """
-Maigret integration, broad username/identity discovery across 3,000+ sites.
+Maigret integration, broad username/identity discovery across 3,400+ sites.
 
 Wraps the 'maigret' CLI (a large, sherlock-derived database) to enumerate
 platforms where a username exists, and to extract profile details (IDs,
@@ -29,7 +29,7 @@ _BINARY = "maigret"
 _INSTALL_HINT = "Install it with: pip install maigret"
 _DEFAULT_TIMEOUT = 100          # overall subprocess wall-clock budget (seconds)
 _PER_SITE_TIMEOUT = "5"         # seconds per site request, passed to --timeout
-_DEFAULT_TOP_SITES = 500        # sites scanned, ranked by popularity (DB has 3,000+)
+_DEFAULT_TOP_SITES = 500        # sites scanned per run, ranked by popularity
 _MAX_DETAILS = 3                # profile detail lines shown per hit
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
@@ -96,14 +96,14 @@ def _format(hits: list[tuple[str, str, dict]], username: str) -> str:
     if not hits:
         return f"No accounts found for username '{username}' across the Maigret database."
 
-    lines = [f"Maigret found {len(hits)} account(s) for '{username}' (3,000+ site database):\n"]
+    lines = [f"Maigret found {len(hits)} account(s) for '{username}' (3,400+ site database):\n"]
     for site, url, details in hits:
         lines.append(f"[+] {site}: {url}")
         shown = [(k, details[k]) for k in _HIGH_VALUE_FIELDS if k in details]
         for k, v in shown[:_MAX_DETAILS]:
             lines.append(f"      {k}: {v}")
     lines.append(
-        "\nSource: maigret (account-existence across 3,000+ sites). Some sites "
+        "\nSource: maigret (account-existence across 3,400+ sites). Some sites "
         "yield false positives, corroborate high-stakes findings."
     )
     return "\n".join(lines)
@@ -115,14 +115,14 @@ async def run_maigret_osint(
     timeout_seconds: int = _DEFAULT_TIMEOUT,
 ) -> str:
     """
-    Enumerate platforms where username exists via maigret (3,000+ sites).
+    Enumerate platforms where username exists via maigret (3,400+ sites).
 
     Parameters
     ----------
     username:
         The username/handle to search for.
     top_sites:
-        How many sites to scan, ranked by popularity (the database has 3,000+).
+        How many sites to scan, ranked by popularity (the database has 3,400+).
     timeout_seconds:
         Hard wall-clock limit for the maigret subprocess.
 
