@@ -61,12 +61,21 @@ stalking, harassment, doxxing, or surveillance without consent.
 
 ## Install
 
+Check whether Clearfront is already there before running anything else. Plenty
+of users, the author included, keep it in a virtualenv or a working clone
+rather than on the global PATH, so "command not found" usually means the shell
+cannot see it rather than that it is missing:
+
 ```bash
-pip install clearfront
+clearfront --version || pip install clearfront
 ```
 
+If the user works from a clone of the repo, `pip install -e .` inside that
+directory is the equivalent and keeps whatever local changes they have.
+
 Requires Python 3.10+. Some deeper sources need free API keys (set as
-environment variables), but the majority of tools run keyless.
+environment variables), but the majority of tools run keyless, so a fresh
+install can do useful work immediately without any setup.
 
 ## Choosing an approach
 
