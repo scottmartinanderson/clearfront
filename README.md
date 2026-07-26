@@ -1,3 +1,5 @@
+<!-- mcp-name: sh.clearfront/clearfront -->
+
 <div align="center">
   <h1>Clearfront</h1>
   <p><strong>Open-source AI intelligence on your digital footprint.</strong></p>
