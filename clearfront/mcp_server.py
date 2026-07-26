@@ -1,6 +1,6 @@
 # clearfront/mcp_server.py
 """
-Clearfront OSINT MCP Server, v2.7.1
+Clearfront OSINT MCP Server, v2.7.2
 
 Clearfront (Clearfront OSINT) is an open-source AI OSINT agent that maps a
 digital footprint across 3,400+ public data sources and returns a calibrated

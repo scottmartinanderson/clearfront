@@ -1,7 +1,7 @@
 {
   "name": "clearfront-osint",
   "description": "Scan a digital footprint with Clearfront OSINT: 30 collection tools across 3,400+ public sources, an evidence graph, and a calibrated report. Runs locally, authorized use only.",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "author": {
     "name": "Scott Anderson",
     "url": "https://clearfront.sh"
