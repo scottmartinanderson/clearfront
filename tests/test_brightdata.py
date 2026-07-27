@@ -13,7 +13,10 @@ Mock shapes match the verified API behaviour:
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -25,6 +28,8 @@ def _mock_serp_response(status_code: int, json_body: dict | None = None) -> Magi
     resp = MagicMock()
     resp.status_code = status_code
     resp.json.return_value = json_body or {}
+    # The empty-body guard reads response.text before parsing.
+    resp.text = json.dumps(json_body) if json_body else "{}"
     return resp
 
 
@@ -34,6 +39,24 @@ def _mock_unlocker_response(status_code: int, text: str = "") -> MagicMock:
     resp.status_code = status_code
     resp.text = text
     return resp
+
+
+def _mock_status_response(status_code: int, json_body: dict | None = None) -> MagicMock:
+    """Mock for GET /status, the account-state probe."""
+    resp = MagicMock()
+    resp.status_code = status_code
+    resp.json.return_value = json_body or {}
+    return resp
+
+
+@pytest.fixture(autouse=True)
+def _reset_status_cache():
+    """The account-state probe caches per key for a minute. Isolate every test from it."""
+    from clearfront.brightdata import _clear_status_cache
+
+    _clear_status_cache()
+    yield
+    _clear_status_cache()
 
 
 # ---------------------------------------------------------------------------
@@ -289,17 +312,64 @@ class TestScrapeUrl:
         assert "[Web Unlocker] URL: https://example.com" in result
         assert "some markdown content" in result
 
-    async def test_empty_body_shows_placeholder(self, monkeypatch):
+    async def test_empty_body_is_an_error_not_content(self, monkeypatch):
+        """A suspended account answers HTTP 200 with a blank body. Never report that as a scrape."""
         monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
         monkeypatch.setenv("BRIGHTDATA_UNLOCKER_ZONE", "web_unlocker1")
 
         mock_resp = _mock_unlocker_response(200, text="")
         with patch("clearfront.tools.scrape_url.requests.post", return_value=mock_resp):
-            from clearfront.tools.scrape_url import run_scrape_url_osint
+            with patch(
+                "clearfront.brightdata.requests.get",
+                return_value=_mock_status_response(200, {"can_make_requests": True}),
+            ):
+                from clearfront.tools.scrape_url import run_scrape_url_osint
 
-            result = await run_scrape_url_osint("https://example.com")
+                result = await run_scrape_url_osint("https://example.com")
 
-        assert "empty response body" in result
+        assert "Scan error" in result
+        assert "empty body" in result
+        assert "No data was collected" in result
+
+    async def test_suspended_account_named_in_error(self, monkeypatch):
+        """The status endpoint knows the real reason. Surface it instead of a blank page."""
+        monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
+        monkeypatch.setenv("BRIGHTDATA_UNLOCKER_ZONE", "web_unlocker1")
+
+        status_body = {"status": "suspended", "can_make_requests": False}
+        with patch(
+            "clearfront.tools.scrape_url.requests.post",
+            return_value=_mock_unlocker_response(200, text=""),
+        ):
+            with patch(
+                "clearfront.brightdata.requests.get",
+                return_value=_mock_status_response(200, status_body),
+            ):
+                from clearfront.tools.scrape_url import run_scrape_url_osint
+
+                result = await run_scrape_url_osint("https://example.com")
+
+        assert "suspended" in result
+        assert "cannot make requests" in result
+        assert "brightdata.com/cp" in result
+
+    async def test_whitespace_only_body_is_an_error(self, monkeypatch):
+        monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
+        monkeypatch.setenv("BRIGHTDATA_UNLOCKER_ZONE", "web_unlocker1")
+
+        with patch(
+            "clearfront.tools.scrape_url.requests.post",
+            return_value=_mock_unlocker_response(200, text="   \n  \n"),
+        ):
+            with patch(
+                "clearfront.brightdata.requests.get",
+                return_value=_mock_status_response(200, {"can_make_requests": True}),
+            ):
+                from clearfront.tools.scrape_url import run_scrape_url_osint
+
+                result = await run_scrape_url_osint("https://example.com")
+
+        assert "Scan error" in result
 
     async def test_request_uses_format_raw_not_json(self, monkeypatch):
         """Verify the outbound request body uses format=raw to avoid JSON envelope parsing."""
@@ -381,3 +451,123 @@ class TestScrapeUrl:
 
         assert isinstance(result, str)
         assert "error" in result.lower()
+
+
+# ---------------------------------------------------------------------------
+# Empty HTTP 200: the suspended-account signature
+# ---------------------------------------------------------------------------
+
+
+class TestEmptyBodyOnSerp:
+    """A suspended account returns HTTP 200 with a zero-length body on the SERP zone too."""
+
+    async def test_dorks_live_empty_body_names_suspension(self, monkeypatch):
+        monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
+        monkeypatch.setenv("BRIGHTDATA_SERP_ZONE", "serp_api1")
+
+        empty = _mock_unlocker_response(200, text="")
+        status = _mock_status_response(200, {"status": "suspended", "can_make_requests": False})
+        with patch("clearfront.tools.search_dorks_live.requests.post", return_value=empty):
+            with patch("clearfront.brightdata.requests.get", return_value=status):
+                from clearfront.tools.search_dorks_live import run_dorks_live_osint
+
+                result = await run_dorks_live_osint("target", max_dorks=2)
+
+        assert "suspended" in result
+        # The old aggregate blamed the user's credentials for a backend outage.
+        assert "Check your SERP backend credentials" not in result
+
+    async def test_dorks_live_empty_body_does_not_raise_json_error(self, monkeypatch):
+        """The pre-fix symptom was a raw 'Expecting value: line 1 column 1' parse error."""
+        monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
+        monkeypatch.setenv("BRIGHTDATA_SERP_ZONE", "serp_api1")
+
+        empty = MagicMock()
+        empty.status_code = 200
+        empty.text = ""
+        empty.json.side_effect = ValueError("Expecting value: line 1 column 1 (char 0)")
+        status = _mock_status_response(200, {"can_make_requests": True})
+
+        with patch("clearfront.tools.search_dorks_live.requests.post", return_value=empty):
+            with patch("clearfront.brightdata.requests.get", return_value=status):
+                from clearfront.tools.search_dorks_live import run_dorks_live_osint
+
+                result = await run_dorks_live_osint("target", max_dorks=1)
+
+        assert "Expecting value" not in result
+        assert "empty body" in result
+
+    async def test_footprint_empty_body_names_suspension(self, monkeypatch):
+        monkeypatch.setenv("BRIGHTDATA_API_KEY", "test-key")
+        monkeypatch.setenv("BRIGHTDATA_SERP_ZONE", "serp_api1")
+        monkeypatch.delenv("SERPER_API_KEY", raising=False)
+
+        empty = _mock_unlocker_response(200, text="")
+        status = _mock_status_response(200, {"status": "suspended", "can_make_requests": False})
+        with patch("clearfront.tools.search_footprint.requests.post", return_value=empty):
+            with patch("clearfront.brightdata.requests.get", return_value=status):
+                from clearfront.tools.search_footprint import run_footprint_osint
+
+                result = await run_footprint_osint("aquassist_ian")
+
+        assert "suspended" in result
+        assert "Check your SERP backend credentials" not in result
+
+
+class TestAccountBlockedReason:
+    def test_returns_none_when_account_is_healthy(self):
+        from clearfront.brightdata import account_blocked_reason
+
+        status = _mock_status_response(200, {"status": "active", "can_make_requests": True})
+        with patch("clearfront.brightdata.requests.get", return_value=status):
+            assert account_blocked_reason("test-key") is None
+
+    def test_returns_reason_when_account_cannot_make_requests(self):
+        from clearfront.brightdata import account_blocked_reason
+
+        status = _mock_status_response(200, {"status": "suspended", "can_make_requests": False})
+        with patch("clearfront.brightdata.requests.get", return_value=status):
+            reason = account_blocked_reason("test-key")
+
+        assert reason is not None
+        assert "suspended" in reason
+        assert "brightdata.com/cp" in reason
+
+    def test_returns_none_without_an_api_key(self):
+        from clearfront.brightdata import account_blocked_reason
+
+        assert account_blocked_reason("") is None
+
+    def test_probe_failure_is_not_fatal(self):
+        """A failed probe must not mask the caller's own error."""
+        import requests as _requests
+
+        from clearfront.brightdata import account_blocked_reason
+
+        with patch(
+            "clearfront.brightdata.requests.get",
+            side_effect=_requests.RequestException("connection refused"),
+        ):
+            assert account_blocked_reason("test-key") is None
+
+    def test_result_is_cached_per_key(self):
+        """A failing sweep probes once, not once per tool call."""
+        from clearfront.brightdata import account_blocked_reason
+
+        status = _mock_status_response(200, {"status": "suspended", "can_make_requests": False})
+        with patch("clearfront.brightdata.requests.get", return_value=status) as mock_get:
+            for _ in range(5):
+                account_blocked_reason("test-key")
+
+        assert mock_get.call_count == 1
+
+    def test_empty_body_reason_falls_back_when_status_is_silent(self):
+        from clearfront.brightdata import empty_body_reason
+
+        status = _mock_status_response(200, {"can_make_requests": True})
+        with patch("clearfront.brightdata.requests.get", return_value=status):
+            reason = empty_body_reason("test-key", "Bright Data SERP")
+
+        assert "Bright Data SERP" in reason
+        assert "empty body" in reason
+        assert "No data was collected" in reason

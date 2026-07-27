@@ -27,6 +27,7 @@ from urllib.parse import urlparse
 
 import requests
 
+from clearfront.brightdata import empty_body_reason
 from clearfront.regexes import detect_entity_kind
 from clearfront.serp import preferred_backend, serper_search
 from clearfront.tools.exceptions import OSINTError, ToolExecutionError
@@ -107,8 +108,14 @@ def _fetch_serp(url: str, api_key: str, zone: str, timeout: int) -> dict:
     if response.status_code != 200:
         raise ToolExecutionError(f"Bright Data SERP returned HTTP {response.status_code}.")
 
+    if not response.text.strip():
+        raise OSINTError(empty_body_reason(api_key, "Bright Data SERP"))
+
     # format="raw" + data_format="parsed_light": body IS the parsed JSON dict
-    return response.json()
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise OSINTError(f"Bright Data SERP returned a non-JSON body: {exc}") from exc
 
 
 def _extract_organic(data: dict) -> list[dict]:
@@ -240,6 +247,7 @@ async def run_footprint_osint(
     seen_domains: set[str] = set()
     discovered_urls: list[str] = []
     error_count = 0
+    last_error = ""
 
     for i, query in enumerate(queries, start=1):
         lines.append(f"[+] Query {i}/{len(queries)}: {query}")
@@ -285,11 +293,13 @@ async def run_footprint_osint(
                 lines.append("")
         except OSINTError as exc:
             error_count += 1
+            last_error = str(exc)
             logger.warning("Footprint query failed: %s", exc)
             lines.append(f"    (error: {exc})")
             lines.append("")
         except Exception as exc:
             error_count += 1
+            last_error = str(exc)
             logger.exception("Unexpected error in footprint query.")
             lines.append(f"    (internal error: {exc})")
             lines.append("")
@@ -300,6 +310,8 @@ async def run_footprint_osint(
                 "Scan error: all DuckDuckGo searches failed (possibly rate-limited). "
                 "Try again shortly, or set SERPER_API_KEY / Bright Data for reliable results."
             )
+        if last_error:
+            return f"Scan error: all SERP requests failed via {backend}. {last_error}"
         return (
             f"Scan error: all SERP requests failed via {backend}. "
             "Check your SERP backend credentials."

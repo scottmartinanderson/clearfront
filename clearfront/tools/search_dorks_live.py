@@ -27,7 +27,7 @@ import urllib.parse
 
 import requests
 
-from clearfront.brightdata import BRIGHTDATA_LINK_CLI
+from clearfront.brightdata import BRIGHTDATA_LINK_CLI, empty_body_reason
 from clearfront.serp import preferred_backend, serper_search
 from clearfront.tools.exceptions import OSINTError, ToolExecutionError
 from clearfront.tools.generate_dorks import _DORK_TEMPLATES
@@ -73,8 +73,14 @@ def _fetch_serp(url: str, api_key: str, zone: str, timeout: int) -> dict:
     if response.status_code != 200:
         raise ToolExecutionError(f"Bright Data SERP returned HTTP {response.status_code}.")
 
+    if not response.text.strip():
+        raise OSINTError(empty_body_reason(api_key, "Bright Data SERP"))
+
     # format="raw" + data_format="parsed_light": response body IS the parsed JSON dict
-    return response.json()
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise OSINTError(f"Bright Data SERP returned a non-JSON body: {exc}") from exc
 
 
 def _extract_organic(data: dict) -> list[dict]:
@@ -133,6 +139,7 @@ async def run_dorks_live_osint(
 
     lines = [f"Live dork search for '{target}' via {backend} ({len(dorks)} queries):\n"]
     error_count = 0
+    last_error = ""
 
     for template in dorks:
         query = template.format(target=target)
@@ -153,16 +160,20 @@ async def run_dorks_live_osint(
                 lines.append("")
         except OSINTError as exc:
             error_count += 1
+            last_error = str(exc)
             logger.warning("SERP dork failed: %s", exc)
             lines.append(f"    (error: {exc})")
             lines.append("")
         except Exception as exc:
             error_count += 1
+            last_error = str(exc)
             logger.exception("Unexpected error during live dork execution.")
             lines.append(f"    (internal error: {exc})")
             lines.append("")
 
     if error_count == len(dorks):
+        if last_error:
+            return f"Scan error: all SERP requests failed via {backend}. {last_error}"
         return (
             f"Scan error: all SERP requests failed via {backend}. "
             "Check your SERP backend credentials (SERPER_API_KEY or BRIGHTDATA_*)."

@@ -26,7 +26,7 @@ import re
 
 import requests
 
-from clearfront.brightdata import BRIGHTDATA_LINK_CLI
+from clearfront.brightdata import BRIGHTDATA_LINK_CLI, empty_body_reason
 from clearfront.tools.exceptions import OSINTError, ToolExecutionError
 from clearfront.utils import is_internal_url
 
@@ -88,7 +88,10 @@ def _fetch_unlocker(url: str, api_key: str, zone: str, timeout: int) -> str:
         )
 
     # format="raw": body is the plain markdown string, do not json.parse it
-    return response.text
+    body = response.text
+    if not body.strip():
+        raise OSINTError(empty_body_reason(api_key, "Bright Data Web Unlocker"))
+    return body
 
 
 async def run_scrape_url_osint(
@@ -127,8 +130,7 @@ async def run_scrape_url_osint(
     logger.info("Starting Web Unlocker fetch for: %s", url)
     try:
         markdown = await asyncio.to_thread(_fetch_unlocker, url, api_key, zone, timeout_seconds)
-        content = markdown.strip() if markdown.strip() else "(empty response body)"
-        result = f"[Web Unlocker] URL: {url}\n\n{content}"
+        result = f"[Web Unlocker] URL: {url}\n\n{markdown.strip()}"
         logger.info("Web Unlocker fetch complete for: %s", url)
         return result
     except OSINTError as exc:
