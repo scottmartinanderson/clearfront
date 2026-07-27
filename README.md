@@ -37,6 +37,12 @@ Clearfront is an AI agent for Open Source Intelligence with five interfaces: an 
 ## Installation
 
 ```bash
+pip install clearfront
+```
+
+Or from source, if you want to modify it:
+
+```bash
 git clone https://github.com/scottmartinanderson/clearfront
 cd clearfront
 pip install -e .
