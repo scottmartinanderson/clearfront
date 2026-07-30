@@ -31,7 +31,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "mcp>=1.28.1",
+    "mcp>=1.28.1,<2",
     "anthropic>=0.116.0",
     "requests>=2.34.2",
     "python-whois>=0.9.6",

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`--version` flag.** The CLI could not report its own version: `--version` exited 2 with the usage block, and `-v` is `--verbose`. Both `-V` and `--version` now print the installed version and exit.
 
 ### Fixed
+- **The MCP server was broken on every fresh install.** The `mcp` dependency was declared as `mcp>=1.28.1` with no upper bound. `mcp` 2.0.0 landed on 2026-07-28 and changed the `Server` API, so `clearfront/mcp_server.py` failed at import with `AttributeError: 'Server' object has no attribute 'list_tools'`. Any `pip install clearfront` from that date resolved to the new major and could not start the MCP server; the CLI was unaffected. The constraint is now `mcp>=1.28.1,<2`.
 - **An empty Bright Data response is a failure, not a finding.** A suspended or unpaid Bright Data account answers `POST /request` with HTTP 200 and a zero-length body. Every caller read that as content, so one dead backend produced three different misleading errors across `scrape_url`, `search_footprint`, `search_dorks_live` and `search_paste`, and the analyst reported the outage as an absence of evidence. Empty bodies now raise, and the error names the account state from `GET /status`. The SERP tools also carry the underlying error into their aggregate message instead of blaming your credentials.
 
 ## [2.7.2], 2026-07-26
