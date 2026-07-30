@@ -4,6 +4,12 @@ on:
   push:
     branches: [main, "release/**"]
   pull_request:
+  # Dependencies resolve forward on every install, so the published package can
+  # break with no commit behind it. mcp 2.0.0 did exactly that on 2026-07-28 and
+  # went unnoticed for two days because nothing pushed. This run needs no author.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 jobs:
   test:
