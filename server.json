@@ -6,12 +6,12 @@
     "url": "https://github.com/scottmartinanderson/clearfront",
     "source": "github"
   },
-  "version": "2.7.2",
+  "version": "2.7.3",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "clearfront",
-      "version": "2.7.2",
+      "version": "2.7.3",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {

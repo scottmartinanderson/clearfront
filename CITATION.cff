@@ -10,7 +10,7 @@ type: software
 authors:
   - given-names: Scott
     family-names: Anderson
-version: 2.7.2
+version: 2.7.3
 license: MIT
 repository-code: "https://github.com/scottmartinanderson/clearfront"
 url: "https://github.com/scottmartinanderson/clearfront"

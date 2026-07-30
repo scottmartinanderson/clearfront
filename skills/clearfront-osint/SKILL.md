@@ -18,7 +18,7 @@ compatibility: |
 metadata:
   homepage: https://clearfront.sh
   repository: https://github.com/scottmartinanderson/clearfront
-  version: "2.7.2"
+  version: "2.7.3"
 ---
 
 # Clearfront OSINT
