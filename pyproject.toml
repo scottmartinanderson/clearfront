@@ -68,37 +68,37 @@ dev = [
     "ruff>=0.15.20",
 ]
 shodan = [
-    "shodan>=1.31.0",
+    "shodan>=1.31.0,<2",
 ]
 ollama = [
-    "ollama>=0.6.2",
+    "ollama>=0.6.2,<1",
 ]
 openai = [
-    "openai>=2.44.0",
+    "openai>=2.44.0,<3",
 ]
 pdf = [
-    "reportlab>=5.0.0",
+    "reportlab>=5.0.0,<6",
 ]
 censys = [
-    "censys-platform>=0.15.1",
+    "censys-platform>=0.15.1,<1",
 ]
 web = [
-    "fastapi>=0.139.0",
-    "uvicorn[standard]>=0.51.0",
-    "sse-starlette>=3.4.5",
-    "python-dotenv>=1.2.2",
-    "anthropic>=0.116.0",
-    "playwright>=1.61.0",
+    "fastapi>=0.139.0,<1",
+    "uvicorn[standard]>=0.51.0,<1",
+    "sse-starlette>=3.4.5,<4",
+    "python-dotenv>=1.2.2,<2",
+    "anthropic>=0.116.0,<1",
+    "playwright>=1.61.0,<2",
 ]
 all = [
-    "shodan>=1.31.0",
-    "ollama>=0.6.2",
-    "openai>=2.44.0",
-    "reportlab>=5.0.0",
-    "censys-platform>=0.15.1",
-    "fastapi>=0.139.0",
-    "uvicorn[standard]>=0.51.0",
-    "sse-starlette>=3.4.5",
+    "shodan>=1.31.0,<2",
+    "ollama>=0.6.2,<1",
+    "openai>=2.44.0,<3",
+    "reportlab>=5.0.0,<6",
+    "censys-platform>=0.15.1,<1",
+    "fastapi>=0.139.0,<1",
+    "uvicorn[standard]>=0.51.0,<1",
+    "sse-starlette>=3.4.5,<4",
 ]
 
 [tool.setuptools.packages.find]
