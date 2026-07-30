@@ -31,6 +31,7 @@ import logging  # noqa: E402
 import os  # noqa: E402
 import sys  # noqa: E402
 
+from clearfront import __version__  # noqa: E402
 from clearfront.json_output import format_tool_result  # noqa: E402
 from clearfront.tools.scrape_url import run_scrape_url_osint  # noqa: E402
 from clearfront.tools.search_footprint import run_footprint_osint  # noqa: E402
@@ -123,6 +124,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="Enable debug-level logging.",
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"clearfront {__version__}",
+        help="Print the installed version and exit.",
     )
     parser.add_argument(
         "--api-key",
