@@ -74,7 +74,7 @@ ollama = [
     "ollama>=0.6.2,<1",
 ]
 openai = [
-    "openai>=2.44.0,<3",
+    "openai>=2.44.0,<4",
 ]
 pdf = [
     "reportlab>=5.0.0,<6",
@@ -93,7 +93,7 @@ web = [
 all = [
     "shodan>=1.31.0,<2",
     "ollama>=0.6.2,<1",
-    "openai>=2.44.0,<3",
+    "openai>=2.44.0,<4",
     "reportlab>=5.0.0,<6",
     "censys-platform>=0.15.1,<1",
     "fastapi>=0.139.0,<1",
